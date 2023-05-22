@@ -17,7 +17,6 @@ const errorType = {
 };
 
 const selectedBoard = import.meta.env.VITE_REACT_APP_GP2040_BOARD;
-const selectedController = import.meta.env.VITE_REACT_APP_GP2040_CONTROLLER;
 
 export default function PinMappingPage() {
 	const { buttonLabels, setButtonLabels, usedPins, updateUsedPins } =
