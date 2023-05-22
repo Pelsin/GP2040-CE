@@ -8,13 +8,23 @@ import WebApi from "../Services/WebApi";
 const percentage = (x: number, y: number) => ((x / y) * 100).toFixed(2);
 const toKB = (x: number) => parseFloat((x / 1024).toFixed(2));
 
+type MemoryReportType = {
+	totalFlash: number;
+	usedFlash: number;
+	staticAllocs: number;
+	totalHeap: number;
+	usedHeap: number;
+	percentageFlash: string;
+	percentageHeap: string;
+} | null;
+
 export default function HomePage() {
 	const [latestVersion, setLatestVersion] = useState("");
 	const [latestTag, setLatestTag] = useState("");
 	const [currentVersion, setCurrentVersion] = useState(
 		import.meta.env.VITE_REACT_APP_CURRENT_VERSION
 	);
-	const [memoryReport, setMemoryReport] = useState(null);
+	const [memoryReport, setMemoryReport] = useState<MemoryReportType>(null);
 
 	useEffect(() => {
 		WebApi.getFirmwareVersion()
