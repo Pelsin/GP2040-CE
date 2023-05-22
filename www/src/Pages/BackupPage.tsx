@@ -49,7 +49,7 @@ export default function BackupPage() {
 
 	useEffect(() => {
 		async function fetchData() {
-			let exportData = {};
+			const exportData = {};
 			for (const [key, func] of Object.entries(API_BINDING)) {
 				exportData[key] = await func.get();
 			}
@@ -59,7 +59,7 @@ export default function BackupPage() {
 
 		// setup defaults
 		function getDefaultValues() {
-			let defaults = {};
+			const defaults = {};
 			for (const [key] of Object.entries(API_BINDING)) {
 				defaults[`export_${key}`] = true;
 				defaults[`import_${key}`] = true;
@@ -75,7 +75,7 @@ export default function BackupPage() {
 			return {};
 		}
 
-		let validated = {};
+		const validated = {};
 		for (const [key, value] of Object.entries(data)) {
 			const nextDataValue = nextData[key];
 			if (
@@ -106,16 +106,18 @@ export default function BackupPage() {
 
 	const handleChange = (ev) => {
 		const id = ev.nativeEvent.target.id;
-		let nextCheckValue = {};
-		nextCheckValue[id] = !checkValues[id];
-		setCheckValues((checkValues) => ({ ...checkValues, ...nextCheckValue }));
+
+		setCheckValues((checkValues) => ({
+			...checkValues,
+			[id]: !checkValues[id],
+		}));
 	};
 
-	const handleSave = async (values) => {
-		let exportData = {};
+	const handleSave = async () => {
+		const exportData = {};
 		for (const [key, value] of Object.entries(checkValues)) {
 			if (key.match("export_") && (value != null || value !== undefined)) {
-				let skey = key.slice(7, key.length);
+				const skey = key.slice(7, key.length);
 				if (optionState[skey] !== undefined || optionState[skey] != null) {
 					exportData[skey] = optionState[skey];
 				}
@@ -127,13 +129,12 @@ export default function BackupPage() {
 		const json = JSON.stringify(exportData);
 		const file = new Blob([json], { type: "text/json;charset=utf-8" });
 
-		let a = document.createElement("a");
+		const a = document.createElement("a");
 		a.href = URL.createObjectURL(file);
 		a.download = name;
 		a.innerHTML = "Save Backup";
 
-		let container = document.getElementById("root");
-		container.appendChild(a);
+		document.getElementById("root").appendChild(a);
 
 		a.click();
 		a.remove();
@@ -158,7 +159,7 @@ export default function BackupPage() {
 
 		const fileName = input.files[0].name;
 
-		let reader = new FileReader();
+		const reader = new FileReader();
 		reader.onload = function () {
 			let fileData = undefined;
 			try {
@@ -174,7 +175,7 @@ export default function BackupPage() {
 			}
 
 			// validate parsed data
-			let newData = {};
+			const newData = {};
 			for (const [key, value] of Object.entries(fileData)) {
 				if (optionState[key]) {
 					const result = validateValues(optionState[key], value);
@@ -184,10 +185,10 @@ export default function BackupPage() {
 
 			if (Object.entries(newData).length > 0) {
 				// filter by known values
-				let filteredData = {};
+				const filteredData = {};
 				for (const [key, value] of Object.entries(checkValues)) {
 					if (key.match("import_") && (value != null || value !== undefined)) {
-						let skey = key.slice(7, key.length);
+						const skey = key.slice(7, key.length);
 						if (newData[skey] !== undefined || newData[skey] != null) {
 							filteredData[skey] = newData[skey];
 						}
