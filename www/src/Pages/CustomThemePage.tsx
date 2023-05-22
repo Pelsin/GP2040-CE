@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
@@ -70,15 +70,12 @@ defaultCustomTheme["GRADIENT PRESSED"] = {
 const specialButtons = ["ALL", "GRADIENT NORMAL", "GRADIENT PRESSED"];
 
 const LEDButton = ({
-	id,
 	name,
-	buttonType,
 	buttonColor,
 	buttonPressedColor,
 	className,
 	labelUnder,
 	onClick,
-	...props
 }) => {
 	const [pressed, setPressed] = useState(false);
 
@@ -87,7 +84,7 @@ const LEDButton = ({
 		if (e.button === 2) setPressed(true);
 	};
 
-	const handlePressedHide = (e) => {
+	const handlePressedHide = () => {
 		// Revert to normal state
 		setPressed(false);
 	};
@@ -98,8 +95,8 @@ const LEDButton = ({
 			style={{ backgroundColor: pressed ? buttonPressedColor : buttonColor }}
 			onClick={onClick}
 			onMouseDown={(e) => handlePressedShow(e)}
-			onMouseUp={(e) => handlePressedHide(e)}
-			onMouseLeave={(e) => handlePressedHide(e)}
+			onMouseUp={() => handlePressedHide()}
+			onMouseLeave={() => handlePressedHide()}
 			onContextMenu={(e) => e.preventDefault()}
 		>
 			<span className={`button-label ${labelUnder ? "under" : ""}`}>
@@ -115,10 +112,6 @@ const customColors = (colors) => colors.map((c) => ({ title: c, color: c }));
 const CustomThemePage = () => {
 	const {
 		buttonLabels,
-		gradientNormalColor1,
-		gradientNormalColor2,
-		gradientPressedColor1,
-		gradientPressedColor2,
 		savedColors,
 		setGradientNormalColor1,
 		setGradientNormalColor2,
@@ -147,8 +140,8 @@ const CustomThemePage = () => {
 		setSelectedColor(null);
 
 		// Reset all custom LEDs
-		Object.keys(customTheme).forEach((b, i) => {
-			Object.keys(customTheme[b]).forEach((s, i) => {
+		Object.keys(customTheme).forEach((b) => {
+			Object.keys(customTheme[b]).forEach((s) => {
 				customTheme[b][s] = "#000000";
 			});
 		});
@@ -188,7 +181,7 @@ const CustomThemePage = () => {
 				const matrix = BUTTON_LAYOUTS[ledLayout].matrix;
 				const count = matrix.length;
 
-				let steps = [customTheme[selectedButton].normal];
+				const steps = [customTheme[selectedButton].normal];
 				steps.push(
 					...new Gradient()
 						.setColorGradient(
@@ -263,20 +256,23 @@ const CustomThemePage = () => {
 		setHasCustomTheme(e.target.checked);
 	};
 
-	const toggleSelectedButton = (e, buttonName) => {
-		e.stopPropagation();
-		if (selectedButton === buttonName) {
-			setPickerVisible(false);
-		} else {
-			setLedOverlayTarget(e.target);
-			setSelectedButton(buttonName);
-			setSelectedColor(
-				buttonName === "ALL" ? "#000000" : customTheme[buttonName].normal
-			);
-			setPickerType({ type: "normal", button: buttonName });
-			setPickerVisible(true);
-		}
-	};
+	const toggleSelectedButton = useMemo(
+		(e, buttonName) => {
+			e.stopPropagation();
+			if (selectedButton === buttonName) {
+				setPickerVisible(false);
+			} else {
+				setLedOverlayTarget(e.target);
+				setSelectedButton(buttonName);
+				setSelectedColor(
+					buttonName === "ALL" ? "#000000" : customTheme[buttonName].normal
+				);
+				setPickerType({ type: "normal", button: buttonName });
+				setPickerVisible(true);
+			}
+		},
+		[customTheme, selectedButton]
+	);
 
 	const submit = async () => {
 		const leds = { ...customTheme };
@@ -317,7 +313,7 @@ const CustomThemePage = () => {
 		window.addEventListener("click", (e) =>
 			toggleSelectedButton(e, selectedButton)
 		);
-	}, []);
+	}, [toggleSelectedButton, selectedButton]);
 
 	useEffect(() => {
 		if (!pickerVisible) setTimeout(() => setSelectedButton(null), 250); // Delay enough to allow fade animation to finish
@@ -405,9 +401,7 @@ const CustomThemePage = () => {
 								</div>
 							</Stack>
 							<div className="button-group">
-								<Button onClick={(e) => setModalVisible(true)}>
-									Clear All
-								</Button>
+								<Button onClick={() => setModalVisible(true)}>Clear All</Button>
 								<Button onClick={(e) => toggleSelectedButton(e, "ALL")}>
 									Set All To Color
 								</Button>
