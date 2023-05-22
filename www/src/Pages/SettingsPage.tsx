@@ -117,13 +117,13 @@ const FormContext = ({ setButtonLabels }) => {
 			});
 		}
 		fetchData();
-	}, [setValues]);
+	}, [setButtonLabels, setValues]);
 
 	useEffect(() => {
-		if (!!values.dpadMode) values.dpadMode = parseInt(values.dpadMode);
-		if (!!values.inputMode) values.inputMode = parseInt(values.inputMode);
-		if (!!values.socdMode) values.socdMode = parseInt(values.socdMode);
-		if (!!values.switchTpShareForDs4)
+		if (values.dpadMode) values.dpadMode = parseInt(values.dpadMode);
+		if (values.inputMode) values.inputMode = parseInt(values.inputMode);
+		if (values.socdMode) values.socdMode = parseInt(values.socdMode);
+		if (values.switchTpShareForDs4)
 			values.switchTpShareForDs4 = parseInt(values.switchTpShareForDs4);
 
 		setButtonLabels({
@@ -139,7 +139,7 @@ const FormContext = ({ setButtonLabels }) => {
 			action: parseInt(i.action),
 			mask: parseInt(i.mask),
 		}));
-	}, [values, setValues]);
+	}, [values, setValues, setButtonLabels]);
 
 	return null;
 };
