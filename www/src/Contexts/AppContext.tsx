@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import * as yup from "yup";
 
 import WebApi from "../Services/WebApi";
@@ -100,22 +100,24 @@ export const AppContextProvider = ({ children, ...props }) => {
 		swapTpShareLabels: localValue2,
 		buttonLabelType: localValue,
 	});
-	const setButtonLabels = ({
-		buttonLabelType: newType,
-		swapTpShareLabels: newSwap,
-	}) => {
-		console.log("buttonLabelType is", newType);
-		newType && localStorage.setItem("buttonLabelType", newType);
-		newSwap !== undefined && localStorage.setItem("swapTpShareLabels", newSwap);
-		_setButtonLabels(({ buttonLabelType, swapTpShareLabels }) => ({
-			buttonLabelType: newType || buttonLabelType,
-			swapTpShareLabels: newSwap !== undefined ? newSwap : swapTpShareLabels,
-		}));
-	};
+
+	const setButtonLabels = useCallback(
+		({ buttonLabelType: newType, swapTpShareLabels: newSwap }) => {
+			console.log("buttonLabelType is", newType);
+			newType && localStorage.setItem("buttonLabelType", newType);
+			newSwap !== undefined &&
+				localStorage.setItem("swapTpShareLabels", newSwap);
+			_setButtonLabels(({ buttonLabelType, swapTpShareLabels }) => ({
+				buttonLabelType: newType || buttonLabelType,
+				swapTpShareLabels: newSwap !== undefined ? newSwap : swapTpShareLabels,
+			}));
+		},
+		[]
+	);
 
 	const [savedColors, _setSavedColors] = useState(
 		localStorage.getItem("savedColors")
-			? localStorage.getItem("savedColors").split(",")
+			? localStorage.getItem("savedColors")?.split(",")
 			: []
 	);
 	const setSavedColors = (savedColors) => {
