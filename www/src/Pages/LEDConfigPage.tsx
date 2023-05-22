@@ -134,19 +134,12 @@ const schema = yup.object().shape({
 		.validateMinWhenEqualTo("pledType", 1, 0),
 });
 
-const getLedButtons = (buttonLabels, map, excludeNulls, swapTpShareLabels) => {
+const getLedButtons = (buttonLabels, map, excludeNulls) => {
 	return orderBy(
 		Object.keys(BUTTONS[buttonLabels])
 			.filter((p) => p !== "label" && p !== "value")
 			.filter((p) => (excludeNulls ? map[p] > -1 : true))
 			.map((p) => {
-				let label = BUTTONS[buttonLabels][p];
-				if (p === "S1" && swapTpShareLabels) {
-					label = BUTTONS[buttonLabels]["A2"];
-				}
-				if (p === "A2" && swapTpShareLabels) {
-					label = BUTTONS[buttonLabels]["S1"];
-				}
 				return { id: p, label: BUTTONS[buttonLabels][p], value: map[p] };
 			}),
 		"value"
@@ -174,7 +167,6 @@ const FormContext = ({
 	ledButtonMap,
 	ledFormat,
 	pledColor,
-	pledType,
 	swapTpShareLabels,
 	pledPin1,
 	pledPin2,
@@ -192,8 +184,8 @@ const FormContext = ({
 		async function fetchData() {
 			const data = await WebApi.getLedOptions();
 
-			let available = {};
-			let assigned = {};
+			const available = {};
+			const assigned = {};
 
 			Object.keys(data.ledButtonMap).forEach((p) => {
 				if (data.ledButtonMap[p] === null) available[p] = data.ledButtonMap[p];
@@ -201,8 +193,8 @@ const FormContext = ({
 			});
 
 			const dataSources = [
-				getLedButtons(buttonLabels, available, true, swapTpShareLabels),
-				getLedButtons(buttonLabels, assigned, true, swapTpShareLabels),
+				getLedButtons(buttonLabels, available, true),
+				getLedButtons(buttonLabels, assigned, true),
 			];
 
 			data.pledIndex1 = data.pledType === 1 ? data.pledPin1 : -1;
@@ -215,10 +207,10 @@ const FormContext = ({
 		}
 		fetchData();
 		console.log("update");
-	}, [buttonLabels, swapTpShareLabels]);
+	}, [setDataSources, setValues, buttonLabels, swapTpShareLabels]);
 
 	useEffect(() => {
-		if (!!ledFormat) setFieldValue("ledFormat", parseInt(ledFormat));
+		if (ledFormat) setFieldValue("ledFormat", parseInt(ledFormat));
 	}, [ledFormat, setFieldValue]);
 
 	useEffect(() => {
@@ -226,31 +218,31 @@ const FormContext = ({
 	}, [ledButtonMap, setFieldValue]);
 
 	useEffect(() => {
-		if (!!pledPin1) setFieldValue("pledPin1", parseInt(pledPin1));
+		if (pledPin1) setFieldValue("pledPin1", parseInt(pledPin1));
 	}, [pledPin1, setFieldValue]);
 	useEffect(() => {
-		if (!!pledPin2) setFieldValue("pledPin2", parseInt(pledPin2));
+		if (pledPin2) setFieldValue("pledPin2", parseInt(pledPin2));
 	}, [pledPin2, setFieldValue]);
 	useEffect(() => {
-		if (!!pledPin3) setFieldValue("pledPin3", parseInt(pledPin3));
+		if (pledPin3) setFieldValue("pledPin3", parseInt(pledPin3));
 	}, [pledPin3, setFieldValue]);
 	useEffect(() => {
-		if (!!pledPin4) setFieldValue("pledPin4", parseInt(pledPin4));
+		if (pledPin4) setFieldValue("pledPin4", parseInt(pledPin4));
 	}, [pledPin4, setFieldValue]);
 	useEffect(() => {
-		if (!!pledIndex1) setFieldValue("pledIndex1", parseInt(pledIndex1));
+		if (pledIndex1) setFieldValue("pledIndex1", parseInt(pledIndex1));
 	}, [pledIndex1, setFieldValue]);
 	useEffect(() => {
-		if (!!pledIndex2) setFieldValue("pledIndex2", parseInt(pledIndex2));
+		if (pledIndex2) setFieldValue("pledIndex2", parseInt(pledIndex2));
 	}, [pledIndex2, setFieldValue]);
 	useEffect(() => {
-		if (!!pledIndex3) setFieldValue("pledIndex3", parseInt(pledIndex3));
+		if (pledIndex3) setFieldValue("pledIndex3", parseInt(pledIndex3));
 	}, [pledIndex3, setFieldValue]);
 	useEffect(() => {
-		if (!!pledIndex4) setFieldValue("pledIndex4", parseInt(pledIndex4));
+		if (pledIndex4) setFieldValue("pledIndex4", parseInt(pledIndex4));
 	}, [pledIndex4, setFieldValue]);
 	useEffect(() => {
-		if (!!pledColor) setFieldValue("pledColor", pledColor);
+		if (pledColor) setFieldValue("pledColor", pledColor);
 	}, [pledColor, setFieldValue]);
 
 	return null;
@@ -287,11 +279,6 @@ export default function LEDConfigPage() {
 
 	const setPledColor = (values, hexColor) => {
 		values.pledColor = hexColor;
-	};
-
-	const showRgbPledPicker = (e) => {
-		setColorPickerTarget(e.target);
-		setShowPicker(true);
 	};
 
 	const toggleRgbPledPicker = (e) => {
@@ -356,7 +343,6 @@ export default function LEDConfigPage() {
 				handleBlur,
 				setValues,
 				values,
-				touched,
 				errors,
 			}) => (
 				<Form
@@ -592,10 +578,9 @@ export default function LEDConfigPage() {
 									}}
 								/>
 								<ColorPicker
-									name="pledColor"
 									types={[{ value: values.pledColor }]}
-									onChange={(c, e) => setPledColor(values, c)}
-									onDismiss={(e) => setShowPicker(false)}
+									onChange={(c) => setPledColor(values, c)}
+									onDismiss={() => setShowPicker(false)}
 									placement="bottom"
 									presetColors={LEDColors.map((c) => ({
 										title: c.name,
