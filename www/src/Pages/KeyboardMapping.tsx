@@ -95,7 +95,6 @@ const KEY_CODES = [
 	{ label: "Tab", value: 0x2b },
 ];
 const selectedBoard = import.meta.env.VITE_REACT_APP_GP2040_BOARD;
-const selectedController = import.meta.env.VITE_REACT_APP_GP2040_CONTROLLER;
 
 export default function KeyboardMappingPage() {
 	const { buttonLabels } = useContext(AppContext);
@@ -141,10 +140,10 @@ export default function KeyboardMappingPage() {
 	const validateMappings = (mappings) => {
 		const props = Object.keys(mappings);
 
-		for (let prop of props) {
+		for (const prop of props) {
 			mappings[prop].error = null;
 
-			for (let otherProp of props) {
+			for (const otherProp of props) {
 				if (prop === otherProp) continue;
 
 				if (
@@ -152,8 +151,7 @@ export default function KeyboardMappingPage() {
 					mappings[prop].key === mappings[otherProp].key
 				)
 					mappings[prop].error = `Key ${
-						KEY_CODES.find(({ label, value }) => mappings[prop].key === value)
-							.label
+						KEY_CODES.find(({ value }) => mappings[prop].key === value).label
 					} is already assigned`;
 				else if (
 					(boards[selectedBoard].invalidKeys || []).filter(
@@ -161,8 +159,7 @@ export default function KeyboardMappingPage() {
 					).length > 0
 				)
 					mappings[prop].error = `Key ${
-						KEY_CODES.find(({ label, value }) => mappings[prop].key === value)
-							.label
+						KEY_CODES.find(({ value }) => mappings[prop].key === value).label
 					} is invalid for this board`;
 			}
 		}
