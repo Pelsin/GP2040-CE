@@ -111,12 +111,9 @@ const Navigation = () => {
 							value={buttonLabels.buttonLabelType}
 							onChange={updateButtonLabels}
 						>
-							{Object.keys(BUTTONS).map((b, i) => (
-								<option
-									key={`button-label-option-${i}`}
-									value={BUTTONS[b].value}
-								>
-									{BUTTONS[b].label}
+							{Object.values(BUTTONS).map((b, i) => (
+								<option key={`button-label-option-${i}`} value={b.value}>
+									{b.label}
 								</option>
 							))}
 						</FormSelect>
