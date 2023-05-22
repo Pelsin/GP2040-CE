@@ -6,25 +6,40 @@ import Form from "react-bootstrap/Form";
 import Overlay from "react-bootstrap/Overlay";
 import Popover from "react-bootstrap/Popover";
 import Row from "react-bootstrap/Row";
-import { SketchPicker } from "@hello-pangea/color-picker";
+import { Placement } from "@popperjs/core";
+
+import { SketchPicker, ColorResult } from "@hello-pangea/color-picker";
 
 import { AppContext } from "../Contexts/AppContext";
 import LEDColors from "../Data/LEDColors";
 
 import "./ColorPicker.scss";
 
+type ColorPickerTypes = {
+	onChange: (
+		c: string,
+		e: React.MouseEvent<Element, MouseEvent> | undefined
+	) => void;
+	onDismiss: (e: MouseEvent) => void;
+	placement?: Placement;
+	show: boolean;
+	title?: string;
+	types: [{ value: string }];
+	target: HTMLElement | null;
+};
+
 const ledColors = LEDColors.map((c) => ({ title: c.name, color: c.value }));
 const customColors = (colors) => colors.map((c) => ({ title: c, color: c }));
 
 const ColorPicker = ({
-	types,
 	onChange,
 	onDismiss,
 	placement,
 	show,
 	target,
 	title,
-}) => {
+	types,
+}: ColorPickerTypes) => {
 	const { savedColors, setSavedColors } = useContext(AppContext);
 	const [colorPalette, setColorPalette] = useState([
 		...ledColors,
@@ -57,7 +72,10 @@ const ColorPicker = ({
 		setColorPalette([...ledColors, ...customColors(newColors)]);
 	};
 
-	const selectColor = (c, e) => {
+	const selectColor = (
+		c: ColorResult,
+		e: React.MouseEvent<Element, MouseEvent> | undefined
+	) => {
 		if (onChange) onChange(c.hex, e);
 
 		selectedColorType.value = c.hex;
