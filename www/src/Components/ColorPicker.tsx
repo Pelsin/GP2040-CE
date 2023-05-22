@@ -20,12 +20,10 @@ const ColorPicker = ({
 	types,
 	onChange,
 	onDismiss,
-	pickerOnly,
 	placement,
 	show,
 	target,
 	title,
-	...props
 }) => {
 	const { savedColors, setSavedColors } = useContext(AppContext);
 	const [colorPalette, setColorPalette] = useState([
@@ -73,7 +71,7 @@ const ColorPicker = ({
 		window.addEventListener("click", (e) => onDismiss(e));
 		setSelectedColorType(colorTypes[0]);
 		setSelectedColor(colorTypes[0].value);
-	}, []);
+	}, [colorTypes, onDismiss]);
 
 	return (
 		<Overlay
