@@ -2,17 +2,18 @@ import { useContext, useEffect, useState } from "react";
 import { Button, Form, Row, FormCheck } from "react-bootstrap";
 import { Formik, useFormikContext } from "formik";
 import * as yup from "yup";
+import JSEncrypt from "jsencrypt";
+import CryptoJS from "crypto-js";
+import get from "lodash/get";
+import set from "lodash/set";
+import mapValues from "lodash/mapValues";
+import { BigInteger } from "jsbn";
 
 import { AppContext } from "../Contexts/AppContext";
 import FormControl from "../Components/FormControl";
 import FormSelect from "../Components/FormSelect";
 import Section from "../Components/Section";
 import WebApi from "../Services/WebApi";
-import JSEncrypt from "jsencrypt";
-import CryptoJS from "crypto-js";
-import get from "lodash/get";
-import set from "lodash/set";
-import { BigInteger } from "jsbn";
 
 const I2C_BLOCKS = [
 	{ label: "i2c0", value: 0 },
@@ -93,40 +94,74 @@ const REVERSE_ACTION = [
 	{ label: "Neutral", value: 2 },
 ];
 
+function hexToBytes(hex) {
+	const bytes = [];
+	for (let c = 0; c < hex.length; c += 2)
+		bytes.push(parseInt(hex.substr(c, 2), 16));
+	return bytes;
+}
+
+function mbedmpi2b64(mpi) {
+	const arr = new Uint8Array(mpi.length * 4);
+	let cnt = 0;
+	for (let i = 0; i < mpi.length; i++) {
+		const bytes = hexToBytes(mpi[i]);
+		for (let j = 4; j > 0; j--) {
+			//arr[cnt] = bytes[j];
+			// TEST: re-order from LSB to MSB
+			arr[cnt] = bytes[j - 1];
+			cnt++;
+		}
+	}
+
+	return btoa(String.fromCharCode.apply(null, arr));
+}
+
+function int2mbedmpi(num) {
+	const out = [];
+	const mask = new BigInteger("4294967295");
+	const zero = new BigInteger("0");
+	while (!num.equals(zero)) {
+		out.push(num.and(mask).toString(16).padStart(8, "0"));
+		num = num.shiftRight(32);
+	}
+	return out;
+}
+
 const verifyAndSavePS4 = async () => {
-	let PS4Key = document.getElementById("ps4key-input");
-	let PS4Serial = document.getElementById("ps4serial-input");
-	let PS4Signature = document.getElementById("ps4signature-input");
+	const PS4Key = document.getElementById("ps4key-input");
+	const PS4Serial = document.getElementById("ps4serial-input");
+	const PS4Signature = document.getElementById("ps4signature-input");
 
 	let count = 0;
-	var pem;
-	var signature;
-	var serial;
+	let pem = "";
+	let signature = "";
+	let serial = "";
 
-	const handlePEM = (e) => {
+	const handlePEM = () => {
 		pem = keyReader.result;
 		count++;
 	};
 
-	const handleSignature = (e) => {
+	const handleSignature = () => {
 		signature = sigReader.result;
 		count++;
 	};
 
-	const handleSerial = (e) => {
+	const handleSerial = () => {
 		serial = serialReader.result;
 		count++;
 	};
 
-	let keyReader = new FileReader();
+	const keyReader = new FileReader();
 	keyReader.onloadend = handlePEM;
 	keyReader.readAsText(PS4Key.files[0]);
 
-	let serialReader = new FileReader();
+	const serialReader = new FileReader();
 	serialReader.onloadend = handleSerial;
 	serialReader.readAsText(PS4Serial.files[0]);
 
-	let sigReader = new FileReader();
+	const sigReader = new FileReader();
 	sigReader.onloadend = handleSignature;
 	sigReader.readAsBinaryString(PS4Signature.files[0]);
 
@@ -157,53 +192,19 @@ const verifyAndSavePS4 = async () => {
 				// Private key worked!
 
 				// Translate these to BigInteger
-				var N = new BigInteger(String(key.key.n));
-				var E = new BigInteger(String(key.key.e));
-				var D = new BigInteger(String(key.key.d));
-				var P = new BigInteger(String(key.key.p));
-				var Q = new BigInteger(String(key.key.q));
-				var DP = new BigInteger(String(key.key.dmp1));
-				var DQ = new BigInteger(String(key.key.dmq1));
-				var constantR = new BigInteger("2").pow(4096); // constant R
-				var QP = Q.modInverse(P); // qp = 1 / ( Q % P)
-				var RN = constantR.mod(N); // rn = constant R mod N
-
-				function int2mbedmpi(num) {
-					var out = [];
-					var mask = new BigInteger("4294967295");
-					var zero = new BigInteger("0");
-					while (!num.equals(zero)) {
-						out.push(num.and(mask).toString(16).padStart(8, "0"));
-						num = num.shiftRight(32);
-					}
-					return out;
-				}
-
-				function hexToBytes(hex) {
-					let bytes = [];
-					for (let c = 0; c < hex.length; c += 2)
-						bytes.push(parseInt(hex.substr(c, 2), 16));
-					return bytes;
-				}
-
-				function mbedmpi2b64(mpi) {
-					var arr = new Uint8Array(mpi.length * 4);
-					var cnt = 0;
-					for (let i = 0; i < mpi.length; i++) {
-						let bytes = hexToBytes(mpi[i]);
-						for (let j = 4; j > 0; j--) {
-							//arr[cnt] = bytes[j];
-							// TEST: re-order from LSB to MSB
-							arr[cnt] = bytes[j - 1];
-							cnt++;
-						}
-					}
-
-					return btoa(String.fromCharCode.apply(null, arr));
-				}
+				const N = new BigInteger(String(key.key.n));
+				const E = new BigInteger(String(key.key.e));
+				const D = new BigInteger(String(key.key.d));
+				const P = new BigInteger(String(key.key.p));
+				const Q = new BigInteger(String(key.key.q));
+				const DP = new BigInteger(String(key.key.dmp1));
+				const DQ = new BigInteger(String(key.key.dmq1));
+				const constantR = new BigInteger("2").pow(4096); // constant R
+				const QP = Q.modInverse(P); // qp = 1 / ( Q % P)
+				const RN = constantR.mod(N); // rn = constant R mod N
 
 				const sendPS4Chunks = async (chunks) => {
-					for (var i in chunks) {
+					for (const i in chunks) {
 						if ((await WebApi.setPS4Options(chunks[i])) === false) {
 							return false;
 						}
@@ -211,9 +212,9 @@ const verifyAndSavePS4 = async () => {
 					return true;
 				};
 
-				let serialBin = hexToBytes(serial);
+				const serialBin = hexToBytes(serial);
 
-				let success = await sendPS4Chunks([
+				const success = await sendPS4Chunks([
 					{
 						N: mbedmpi2b64(int2mbedmpi(N)),
 						E: mbedmpi2b64(int2mbedmpi(E)),
@@ -595,170 +596,36 @@ const defaultValues = {
 };
 
 const FormContext = ({ setStoredData }) => {
-	const { values, setValues } = useFormikContext();
+	const { setValues } = useFormikContext();
 
 	useEffect(() => {
 		async function fetchData() {
 			const data = await WebApi.getAddonsOptions();
 
-			setValues(data);
+			setValues(sanitizeData(data));
 			setStoredData(JSON.parse(JSON.stringify(data))); // Do a deep copy to keep the original
 		}
 		fetchData();
-	}, [setValues]);
-
-	useEffect(() => {
-		sanitizeData(values);
-	}, [values, setValues]);
+	}, [setValues, setStoredData]);
 
 	return null;
 };
 
-const sanitizeData = (values) => {
-	if (!!values.turboPin) values.turboPin = parseInt(values.turboPin);
-	if (!!values.turboPinLED) values.turboPinLED = parseInt(values.turboPinLED);
-	if (!!values.sliderLSPin) values.sliderLSPin = parseInt(values.sliderLSPin);
-	if (!!values.sliderRSPin) values.sliderRSPin = parseInt(values.sliderRSPin);
-	if (!!values.sliderSOCDPinOne)
-		values.sliderSOCDPinOne = parseInt(values.sliderSOCDPinOne);
-	if (!!values.sliderSOCDPinTwo)
-		values.sliderSOCDPinTwo = parseInt(values.sliderSOCDPinTwo);
-	if (!!values.turboShotCount)
-		values.turboShotCount = parseInt(values.turboShotCount);
-	if (!!values.reversePin) values.reversePin = parseInt(values.reversePin);
-	if (!!values.reversePinLED)
-		values.reversePinLED = parseInt(values.reversePinLED);
-	if (!!values.reverseActionUp)
-		values.reverseActionUp = parseInt(values.reverseActionUp);
-	if (!!values.reverseActionDown)
-		values.reverseActionDown = parseInt(values.reverseActionDown);
-	if (!!values.reverseActionLeft)
-		values.reverseActionLeft = parseInt(values.reverseActionLeft);
-	if (!!values.reverseActionRight)
-		values.reverseActionRight = parseInt(values.reverseActionRight);
-	if (!!values.i2cAnalog1219SDAPin)
-		values.i2cAnalog1219SDAPin = parseInt(values.i2cAnalog1219SDAPin);
-	if (!!values.i2cAnalog1219SCLPin)
-		values.i2cAnalog1219SCLPin = parseInt(values.i2cAnalog1219SCLPin);
-	if (!!values.i2cAnalog1219Block)
-		values.i2cAnalog1219Block = parseInt(values.i2cAnalog1219Block);
-	if (!!values.i2cAnalog1219Speed)
-		values.i2cAnalog1219Speed = parseInt(values.i2cAnalog1219Speed);
-	if (!!values.i2cAnalog1219Address)
-		values.i2cAnalog1219Address = parseInt(values.i2cAnalog1219Address);
-	if (!!values.onBoardLedMode)
-		values.onBoardLedMode = parseInt(values.onBoardLedMode);
-	if (!!values.dualDownPin) values.dualDownPin = parseInt(values.dualDownPin);
-	if (!!values.dualUpPin) values.dualUpPin = parseInt(values.dualUpPin);
-	if (!!values.dualLeftPin) values.dualLeftPin = parseInt(values.dualLeftPin);
-	if (!!values.dualRightPin)
-		values.dualRightPin = parseInt(values.dualRightPin);
-	if (!!values.dualDirMode) values.dualDirMode = parseInt(values.dualDirMode);
-	if (!!values.analogAdcPinX)
-		values.analogAdcPinX = parseInt(values.analogAdcPinX);
-	if (!!values.analogAdcPinY)
-		values.analogAdcPinY = parseInt(values.analogAdcPinY);
-	if (!!values.bootselButtonMap)
-		values.bootselButtonMap = parseInt(values.bootselButtonMap);
-	if (!!values.buzzerPin) values.buzzerPin = parseInt(values.buzzerPin);
-	if (!!values.buzzerVolume)
-		values.buzzerVolume = parseInt(values.buzzerVolume);
-	if (!!values.extraButtonMap)
-		values.extraButtonMap = parseInt(values.extraButtonMap);
-	if (!!values.extrabuttonPin)
-		values.extrabuttonPin = parseInt(values.extrabuttonPin);
-	if (!!values.playerNumber)
-		values.playerNumber = parseInt(values.playerNumber);
-	if (!!values.shmupMode) values.shmupMode = parseInt(values.shmupMode);
-	if (!!values.shmupMixMode)
-		values.shmupMixMode = parseInt(values.shmupMixMode);
-	if (!!values.shmupAlwaysOn1)
-		values.shmupAlwaysOn1 = parseInt(values.shmupAlwaysOn1);
-	if (!!values.shmupAlwaysOn2)
-		values.shmupAlwaysOn2 = parseInt(values.shmupAlwaysOn2);
-	if (!!values.shmupAlwaysOn3)
-		values.shmupAlwaysOn3 = parseInt(values.shmupAlwaysOn3);
-	if (!!values.shmupAlwaysOn4)
-		values.shmupAlwaysOn4 = parseInt(values.shmupAlwaysOn4);
-	if (!!values.pinShmupBtn1)
-		values.pinShmupBtn1 = parseInt(values.pinShmupBtn1);
-	if (!!values.pinShmupBtn2)
-		values.pinShmupBtn2 = parseInt(values.pinShmupBtn2);
-	if (!!values.pinShmupBtn3)
-		values.pinShmupBtn3 = parseInt(values.pinShmupBtn3);
-	if (!!values.pinShmupBtn4)
-		values.pinShmupBtn4 = parseInt(values.pinShmupBtn4);
-	if (!!values.shmupBtnMask1)
-		values.shmupBtnMask1 = parseInt(values.shmupBtnMask1);
-	if (!!values.shmupBtnMask2)
-		values.shmupBtnMask2 = parseInt(values.shmupBtnMask2);
-	if (!!values.shmupBtnMask3)
-		values.shmupBtnMask3 = parseInt(values.shmupBtnMask3);
-	if (!!values.shmupBtnMask4)
-		values.shmupBtnMask4 = parseInt(values.shmupBtnMask4);
-	if (!!values.pinShmupDial)
-		values.pinShmupDial = parseInt(values.pinShmupDial);
-	if (!!values.sliderSOCDModeOne)
-		values.sliderSOCDModeOne = parseInt(values.sliderSOCDModeOne);
-	if (!!values.sliderSOCDModeTwo)
-		values.sliderSOCDModeTwo = parseInt(values.sliderSOCDModeTwo);
-	if (!!values.sliderSOCDModeDefault)
-		values.sliderSOCDModeDefault = parseInt(values.sliderSOCDModeDefault);
-	if (!!values.wiiExtensionSDAPin)
-		values.wiiExtensionSDAPin = parseInt(values.wiiExtensionSDAPin);
-	if (!!values.wiiExtensionSCLPin)
-		values.wiiExtensionSCLPin = parseInt(values.wiiExtensionSCLPin);
-	if (!!values.wiiExtensionBlock)
-		values.wiiExtensionBlock = parseInt(values.wiiExtensionBlock);
-	if (!!values.wiiExtensionSpeed)
-		values.wiiExtensionSpeed = parseInt(values.wiiExtensionSpeed);
-	if (!!values.AnalogInputEnabled)
-		values.AnalogInputEnabled = parseInt(values.AnalogInputEnabled);
-	if (!!values.BoardLedAddonEnabled)
-		values.BoardLedAddonEnabled = parseInt(values.BoardLedAddonEnabled);
-	if (!!values.BuzzerSpeakerAddonEnabled)
-		values.BuzzerSpeakerAddonEnabled = parseInt(
-			values.BuzzerSpeakerAddonEnabled
-		);
-	if (!!values.BootselButtonAddonEnabled)
-		values.BootselButtonAddonEnabled = parseInt(
-			values.BootselButtonAddonEnabled
-		);
-	if (!!values.DualDirectionalInputEnabled)
-		values.DualDirectionalInputEnabled = parseInt(
-			values.DualDirectionalInputEnabled
-		);
-	if (!!values.ExtraButtonAddonEnabled)
-		values.ExtraButtonAddonEnabled = parseInt(values.ExtraButtonAddonEnabled);
-	if (!!values.I2CAnalog1219InputEnabled)
-		values.I2CAnalog1219InputEnabled = parseInt(
-			values.I2CAnalog1219InputEnabled
-		);
-	if (!!values.JSliderInputEnabled)
-		values.JSliderInputEnabled = parseInt(values.JSliderInputEnabled);
-	if (!!values.SliderSOCDInputEnabled)
-		values.SliderSOCDInputEnabled = parseInt(values.SliderSOCDInputEnabled);
-	if (!!values.PlayerNumAddonEnabled)
-		values.PlayerNumAddonEnabled = parseInt(values.PlayerNumAddonEnabled);
-	if (!!values.PS4ModeAddonEnabled)
-		values.PS4ModeAddonEnabled = parseInt(values.PS4ModeAddonEnabled);
-	if (!!values.ReverseInputEnabled)
-		values.ReverseInputEnabled = parseInt(values.ReverseInputEnabled);
-	if (!!values.TurboInputEnabled)
-		values.TurboInputEnabled = parseInt(values.TurboInputEnabled);
-	if (!!values.WiiExtensionAddonEnabled)
-		values.WiiExtensionAddonEnabled = parseInt(values.WiiExtensionAddonEnabled);
-};
+// Not sure parseInt is needed for our values, but keeping it for the time being
+const sanitizeData = (values) =>
+	mapValues(values, (value) =>
+		Array.isArray(value) ? value : parseInt(value)
+	);
 
 function flattenObject(object) {
-	var toReturn = {};
+	const toReturn = {};
 
-	for (var i in object) {
+	for (const i in object) {
 		if (!object.hasOwnProperty(i)) continue;
 
 		if (typeof object[i] == "object" && object[i] !== null) {
-			var flatObject = flattenObject(object[i]);
-			for (var x in flatObject) {
+			const flatObject = flattenObject(object[i]);
+			for (const x in flatObject) {
 				if (!flatObject.hasOwnProperty(x)) continue;
 
 				toReturn[i + "." + x] = flatObject[x];
@@ -776,11 +643,13 @@ export default function AddonsConfigPage() {
 	const [storedData, setStoredData] = useState({});
 
 	const onSuccess = async (values) => {
+		console.log(storedData, "1");
 		const flattened = flattenObject(storedData);
+		console.log(flattened, "2");
 		const valuesCopy = schema.cast(values); // Strip invalid values
 
 		// Compare what's changed and set it to resultObject
-		let resultObject = {};
+		const resultObject = {};
 		Object.entries(flattened)?.map((entry) => {
 			const [key, oldVal] = entry;
 			const newVal = get(valuesCopy, key);
@@ -788,8 +657,10 @@ export default function AddonsConfigPage() {
 				set(resultObject, key, newVal);
 			}
 		});
-		sanitizeData(resultObject);
-		const success = await WebApi.setAddonsOptions(resultObject);
+
+		const sanitizedDiff = sanitizeData(resultObject);
+
+		const success = await WebApi.setAddonsOptions(sanitizedDiff);
 		setStoredData(JSON.parse(JSON.stringify(values))); // Update to reflect saved data
 		setSaveMessage(
 			success ? "Saved! Please Restart Your Device" : "Unable to Save"
@@ -831,7 +702,7 @@ export default function AddonsConfigPage() {
 								groupClassName="col-sm-3 mb-3"
 								value={values.bootselButtonMap}
 								error={errors.bootselButtonMap}
-								isInvalid={errors.bootselButtonMap}
+								isInvalid={Boolean(errors.bootselButtonMap)}
 								onChange={handleChange}
 							>
 								{BUTTON_MASKS.map((o, i) => (
@@ -866,7 +737,7 @@ export default function AddonsConfigPage() {
 								groupClassName="col-sm-4 mb-3"
 								value={values.onBoardLedMode}
 								error={errors.onBoardLedMode}
-								isInvalid={errors.onBoardLedMode}
+								isInvalid={Boolean(errors.onBoardLedMode)}
 								onChange={handleChange}
 							>
 								{ON_BOARD_LED_MODES.map((o, i) => (
@@ -902,7 +773,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.analogAdcPinX}
 									error={errors.analogAdcPinX}
-									isInvalid={errors.analogAdcPinX}
+									isInvalid={Boolean(errors.analogAdcPinX)}
 									onChange={handleChange}
 								>
 									{ANALOG_PIN_OPTIONS}
@@ -914,7 +785,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.analogAdcPinY}
 									error={errors.analogAdcPinY}
-									isInvalid={errors.analogAdcPinY}
+									isInvalid={Boolean(errors.analogAdcPinY)}
 									onChange={handleChange}
 								>
 									{ANALOG_PIN_OPTIONS}
@@ -983,7 +854,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.pinShmupDial || -1}
 									error={errors.pinShmupDial}
-									isInvalid={errors.pinShmupDial}
+									isInvalid={Boolean(errors.pinShmupDial)}
 									onChange={handleChange}
 								>
 									{ANALOG_PIN_OPTIONS}
@@ -1009,7 +880,7 @@ export default function AddonsConfigPage() {
 											groupClassName="col-sm-3 mb-3"
 											value={values.shmupAlwaysOn1}
 											error={errors.shmupAlwaysOn1}
-											isInvalid={errors.shmupAlwaysOn1}
+											isInvalid={Boolean(errors.shmupAlwaysOn1)}
 											onChange={handleChange}
 										>
 											{TURBO_MASKS.map((o, i) => (
@@ -1028,7 +899,7 @@ export default function AddonsConfigPage() {
 											groupClassName="col-sm-3 mb-3"
 											value={values.shmupAlwaysOn2}
 											error={errors.shmupAlwaysOn2}
-											isInvalid={errors.shmupAlwaysOn2}
+											isInvalid={Boolean(errors.shmupAlwaysOn2)}
 											onChange={handleChange}
 										>
 											{TURBO_MASKS.map((o, i) => (
@@ -1047,7 +918,7 @@ export default function AddonsConfigPage() {
 											groupClassName="col-sm-3 mb-3"
 											value={values.shmupAlwaysOn3}
 											error={errors.shmupAlwaysOn3}
-											isInvalid={errors.shmupAlwaysOn3}
+											isInvalid={Boolean(errors.shmupAlwaysOn3)}
 											onChange={handleChange}
 										>
 											{TURBO_MASKS.map((o, i) => (
@@ -1066,7 +937,7 @@ export default function AddonsConfigPage() {
 											groupClassName="col-sm-3 mb-3"
 											value={values.shmupAlwaysOn4}
 											error={errors.shmupAlwaysOn4}
-											isInvalid={errors.shmupAlwaysOn4}
+											isInvalid={Boolean(errors.shmupAlwaysOn4)}
 											onChange={handleChange}
 										>
 											{TURBO_MASKS.map((o, i) => (
@@ -1141,7 +1012,7 @@ export default function AddonsConfigPage() {
 											groupClassName="col-sm-3 mb-3"
 											value={values.shmupBtnMask1}
 											error={errors.shmupBtnMask1}
-											isInvalid={errors.shmupBtnMask1}
+											isInvalid={Boolean(errors.shmupBtnMask1)}
 											onChange={handleChange}
 										>
 											{TURBO_MASKS.map((o, i) => (
@@ -1160,7 +1031,7 @@ export default function AddonsConfigPage() {
 											groupClassName="col-sm-3 mb-3"
 											value={values.shmupBtnMask2}
 											error={errors.shmupBtnMask2}
-											isInvalid={errors.shmupBtnMask2}
+											isInvalid={Boolean(errors.shmupBtnMask2)}
 											onChange={handleChange}
 										>
 											{TURBO_MASKS.map((o, i) => (
@@ -1179,7 +1050,7 @@ export default function AddonsConfigPage() {
 											groupClassName="col-sm-3 mb-3"
 											value={values.shmupBtnMask3}
 											error={errors.shmupBtnMask3}
-											isInvalid={errors.shmupBtnMask3}
+											isInvalid={Boolean(errors.shmupBtnMask3)}
 											onChange={handleChange}
 										>
 											{TURBO_MASKS.map((o, i) => (
@@ -1198,7 +1069,7 @@ export default function AddonsConfigPage() {
 											groupClassName="col-sm-3 mb-3"
 											value={values.shmupBtnMask4}
 											error={errors.shmupBtnMask4}
-											isInvalid={errors.shmupBtnMask4}
+											isInvalid={Boolean(errors.shmupBtnMask4)}
 											onChange={handleChange}
 										>
 											{TURBO_MASKS.map((o, i) => (
@@ -1218,7 +1089,7 @@ export default function AddonsConfigPage() {
 										groupClassName="col-sm-3 mb-3"
 										value={values.shmupMixMode}
 										error={errors.shmupMixMode}
-										isInvalid={errors.shmupMixMode}
+										isInvalid={Boolean(errors.shmupMixMode)}
 										onChange={handleChange}
 									>
 										{SHMUP_MIXED_MODES.map((o, i) => (
@@ -1563,7 +1434,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.dualDirDpadMode}
 									error={errors.dualDirDpadMode}
-									isInvalid={errors.dualDirDpadMode}
+									isInvalid={Boolean(errors.dualDirDpadMode)}
 									onChange={handleChange}
 								>
 									{DUAL_STICK_MODES.map((o, i) => (
@@ -1583,7 +1454,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.dualDirCombineMode}
 									error={errors.dualDirCombineMode}
-									isInvalid={errors.dualDirCombineMode}
+									isInvalid={Boolean(errors.dualDirCombineMode)}
 									onChange={handleChange}
 								>
 									{DUAL_COMBINE_MODES.map((o, i) => (
@@ -1683,7 +1554,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.extraButtonMap}
 									error={errors.extraButtonMap}
-									isInvalid={errors.extraButtonMap}
+									isInvalid={Boolean(errors.extraButtonMap)}
 									onChange={handleChange}
 								>
 									{BUTTON_MASKS.map((o, i) => (
