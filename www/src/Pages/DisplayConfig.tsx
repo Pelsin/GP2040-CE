@@ -61,25 +61,6 @@ const SPLASH_MODES = [
 	//	{ label: 'Close In', value: 1 },		 // CLOSEIN
 	{ label: "Disabled", value: 3 }, // NOSPLASH
 ];
-
-const SPLASH_DURATION_CHOICES = [
-	{ label: "Default", value: 0 },
-	{ label: "5 seconds", value: 5000 },
-	{ label: "10 seconds", value: 10000 },
-	{ label: "30 seconds", value: 30000 },
-	{ label: "Always ON", value: -1 },
-];
-
-const DISPLAY_SAVER_TIMEOUT_CHOICES = [
-	{ label: "Off", value: 0 },
-	{ label: "1 minute", value: 1 },
-	{ label: "2 minutes", value: 2 },
-	{ label: "5 minutes", value: 5 },
-	{ label: "10 minutes", value: 10 },
-	{ label: "20 minutes", value: 20 },
-	{ label: "30 minutes", value: 30 },
-];
-
 const DISPLAY_FLIP_MODES = [
 	{ label: "None", value: 0 },
 	{ label: "Flip", value: 1 },
