@@ -38,7 +38,7 @@ export default function PinMappingPage() {
 		}
 
 		fetchData();
-	}, [setButtonMappings, selectedController]);
+	}, [setButtonLabels, setButtonMappings]);
 
 	const handlePinChange = (e, prop) => {
 		const newMappings = { ...buttonMappings };
