@@ -117,7 +117,7 @@ function mbedmpi2b64(mpi) {
 	return btoa(String.fromCharCode.apply(null, arr));
 }
 
-function int2mbedmpi(num) {
+function int2mbedmpi(num: BigInteger) {
 	const out = [];
 	const mask = new BigInteger("4294967295");
 	const zero = new BigInteger("0");

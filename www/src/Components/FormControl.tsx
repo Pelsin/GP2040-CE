@@ -1,5 +1,23 @@
 import { Form } from "react-bootstrap";
 
+type FormControlType = {
+	className: string;
+	error?: string;
+	groupClassName?: string;
+	hidden?: boolean;
+	label: string;
+	labelClassName?: string;
+	name: string;
+	onClick?: () => void;
+	onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+	type: string;
+	value: number | string;
+	isInvalid?: boolean;
+	min?: number;
+	max?: number;
+	maxLength?: number;
+};
+
 const FormControl = ({
 	onClick,
 	label,
@@ -8,7 +26,7 @@ const FormControl = ({
 	hidden,
 	labelClassName,
 	...props
-}) => {
+}: FormControlType) => {
 	return (
 		<Form.Group className={groupClassName} onClick={onClick} hidden={hidden}>
 			<Form.Label className={labelClassName}>{label}</Form.Label>
