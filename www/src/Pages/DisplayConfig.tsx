@@ -769,8 +769,8 @@ const Canvas = ({ value: bitsArray, onChange }) => {
 		);
 
 		// Convert to monochrome
-		for (const i = 0; i < imgPixels.data.length; i = i + 4) {
-			const avg =
+		for (let i = 0; i < imgPixels.data.length; i = i + 4) {
+			let avg =
 				(imgPixels.data[i] + imgPixels.data[i + 1] + imgPixels.data[i + 2]) / 3;
 			if (avg > 123) avg = 255;
 			else avg = 0;
