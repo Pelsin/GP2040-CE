@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
@@ -247,12 +247,16 @@ const FormContext = ({
 
 	return null;
 };
+type LedType = { id: string; label: string; value: null | number };
 
 export default function LEDConfigPage() {
 	const { buttonLabels, updateUsedPins } = useContext(AppContext);
 	const [saveMessage, setSaveMessage] = useState("");
 	const [ledButtonMap, setLedButtonMap] = useState([]);
-	const [dataSources, setDataSources] = useState([[], []]);
+	const [dataSources, setDataSources] = useState<[LedType[], LedType[]]>([
+		[],
+		[],
+	]);
 	const [colorPickerTarget, setColorPickerTarget] = useState(null);
 	const [showPicker, setShowPicker] = useState(false);
 	const [rgbLedStartIndex, setRgbLedStartIndex] = useState(0);
@@ -359,7 +363,7 @@ export default function LEDConfigPage() {
 								groupClassName="col-sm-4 mb-3"
 								value={values.dataPin}
 								error={errors.dataPin}
-								isInvalid={errors.dataPin}
+								isInvalid={Boolean(errors.dataPin)}
 								onChange={handleChange}
 								min={-1}
 								max={29}
@@ -371,7 +375,7 @@ export default function LEDConfigPage() {
 								groupClassName="col-sm-4 mb-3"
 								value={values.ledFormat}
 								error={errors.ledFormat}
-								isInvalid={errors.ledFormat}
+								isInvalid={Boolean(errors.ledFormat)}
 								onChange={handleChange}
 							>
 								{LED_FORMATS.map((o, i) => (
@@ -387,7 +391,7 @@ export default function LEDConfigPage() {
 								groupClassName="col-sm-4 mb-3"
 								value={values.ledLayout}
 								error={errors.ledLayout}
-								isInvalid={errors.ledLayout}
+								isInvalid={Boolean(errors.ledLayout)}
 								onChange={handleChange}
 							>
 								{BUTTON_LAYOUTS.map((o, i) => (
@@ -406,7 +410,7 @@ export default function LEDConfigPage() {
 								groupClassName="col-sm-4 mb-3"
 								value={values.ledsPerButton}
 								error={errors.ledsPerButton}
-								isInvalid={errors.ledsPerButton}
+								isInvalid={Boolean(errors.ledsPerButton)}
 								onChange={(e) => ledsPerButtonChanged(e, handleChange)}
 								min={1}
 							/>
@@ -418,7 +422,7 @@ export default function LEDConfigPage() {
 								groupClassName="col-sm-4 mb-3"
 								value={values.brightnessMaximum}
 								error={errors.brightnessMaximum}
-								isInvalid={errors.brightnessMaximum}
+								isInvalid={Boolean(errors.brightnessMaximum)}
 								onChange={handleChange}
 								min={0}
 								max={255}
@@ -431,7 +435,7 @@ export default function LEDConfigPage() {
 								groupClassName="col-sm-4 mb-3"
 								value={values.brightnessSteps}
 								error={errors.brightnessSteps}
-								isInvalid={errors.brightnessSteps}
+								isInvalid={Boolean(errors.brightnessSteps)}
 								onChange={handleChange}
 								min={1}
 								max={10}
@@ -448,7 +452,7 @@ export default function LEDConfigPage() {
 									groupClassName="col-sm-2 mb-3"
 									value={values.pledType}
 									error={errors.pledType}
-									isInvalid={errors.pledType}
+									isInvalid={Boolean(errors.pledType)}
 									onChange={handleChange}
 								>
 									<option value="-1" defaultValue={true}>
@@ -466,7 +470,7 @@ export default function LEDConfigPage() {
 									groupClassName="col-sm-2 mb-3"
 									value={values.pledPin1}
 									error={errors.pledPin1}
-									isInvalid={errors.pledPin1}
+									isInvalid={Boolean(errors.pledPin1)}
 									onChange={handleChange}
 									min={0}
 								/>
@@ -479,7 +483,7 @@ export default function LEDConfigPage() {
 									groupClassName="col-sm-2 mb-3"
 									value={values.pledPin2}
 									error={errors.pledPin2}
-									isInvalid={errors.pledPin2}
+									isInvalid={Boolean(errors.pledPin2)}
 									onChange={handleChange}
 									min={0}
 								/>
@@ -492,7 +496,7 @@ export default function LEDConfigPage() {
 									groupClassName="col-sm-2 mb-3"
 									value={values.pledPin3}
 									error={errors.pledPin3}
-									isInvalid={errors.pledPin3}
+									isInvalid={Boolean(errors.pledPin3)}
 									onChange={handleChange}
 									min={0}
 								/>
@@ -505,7 +509,7 @@ export default function LEDConfigPage() {
 									groupClassName="col-sm-2 mb-3"
 									value={values.pledPin4}
 									error={errors.pledPin4}
-									isInvalid={errors.pledPin4}
+									isInvalid={Boolean(errors.pledPin4)}
 									onChange={handleChange}
 									min={0}
 								/>
@@ -518,7 +522,7 @@ export default function LEDConfigPage() {
 									groupClassName="col-sm-2 mb-3"
 									value={values.pledIndex1}
 									error={errors.pledIndex1}
-									isInvalid={errors.pledIndex1}
+									isInvalid={Boolean(errors.pledIndex1)}
 									onChange={handleChange}
 									min={0}
 								/>
@@ -531,7 +535,7 @@ export default function LEDConfigPage() {
 									groupClassName="col-sm-2 mb-3"
 									value={values.pledIndex2}
 									error={errors.pledIndex2}
-									isInvalid={errors.pledIndex2}
+									isInvalid={Boolean(errors.pledIndex2)}
 									onChange={handleChange}
 									min={0}
 								/>
@@ -544,7 +548,7 @@ export default function LEDConfigPage() {
 									groupClassName="col-sm-2 mb-3"
 									value={values.pledIndex3}
 									error={errors.pledIndex3}
-									isInvalid={errors.pledIndex3}
+									isInvalid={Boolean(errors.pledIndex3)}
 									onChange={handleChange}
 									min={0}
 								/>
@@ -557,7 +561,7 @@ export default function LEDConfigPage() {
 									groupClassName="col-sm-2 mb-3"
 									value={values.pledIndex4}
 									error={errors.pledIndex4}
-									isInvalid={errors.pledIndex4}
+									isInvalid={Boolean(errors.pledIndex4)}
 									onChange={handleChange}
 									min={0}
 								/>
@@ -569,7 +573,7 @@ export default function LEDConfigPage() {
 									groupClassName="col-sm-2 mb-3"
 									value={values.pledColor}
 									error={errors.pledColor}
-									isInvalid={errors.pledColor}
+									isInvalid={Boolean(errors.pledColor)}
 									onBlur={handleBlur}
 									onClick={toggleRgbPledPicker}
 									onChange={(e) => {
