@@ -8,9 +8,10 @@ type FormControlType = {
 	label: string;
 	labelClassName?: string;
 	name: string;
-	onClick?: () => void;
+	onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
+	onClick?: (event: React.MouseEvent<HTMLInputElement>) => void;
 	onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-	type: string;
+	type?: string;
 	value: number | string;
 	isInvalid?: boolean;
 	min?: number;
