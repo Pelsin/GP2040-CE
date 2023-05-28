@@ -94,7 +94,7 @@ const KEY_CODES = [
 	{ label: "Space", value: 0x2c },
 	{ label: "Tab", value: 0x2b },
 ];
-const selectedBoard = import.meta.env.VITE_REACT_APP_GP2040_BOARD;
+const selectedBoard = import.meta.env.VITE_GP2040_BOARD;
 
 export default function KeyboardMappingPage() {
 	const { buttonLabels } = useContext(AppContext);

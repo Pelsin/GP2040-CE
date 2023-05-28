@@ -253,7 +253,7 @@ app.get("/api/getAddonsOptions", (req, res) => {
 
 app.get("/api/getFirmwareVersion", (req, res) => {
 	return res.send({
-		version: process.env.VITE_REACT_APP_CURRENT_VERSION,
+		version: process.env.VITE_CURRENT_VERSION,
 	});
 });
 

@@ -22,7 +22,7 @@ export default function HomePage() {
 	const [latestVersion, setLatestVersion] = useState("");
 	const [latestTag, setLatestTag] = useState("");
 	const [currentVersion, setCurrentVersion] = useState(
-		import.meta.env.VITE_REACT_APP_CURRENT_VERSION
+		import.meta.env.VITE_CURRENT_VERSION
 	);
 	const [memoryReport, setMemoryReport] = useState<MemoryReportType>(null);
 
