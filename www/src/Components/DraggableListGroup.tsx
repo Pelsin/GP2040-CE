@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import {
+	DragDropContext,
+	Droppable,
+	Draggable,
+	DropResult,
+} from "react-beautiful-dnd";
 import "./DraggableListGroup.scss";
 
-const reorder = (list, startIndex, endIndex) => {
+const reorder = (list: [], startIndex: number, endIndex: number) => {
 	const result = Array.from(list);
 	const [removed] = result.splice(startIndex, 1);
 	result.splice(endIndex, 0, removed);
@@ -23,19 +28,26 @@ const move = (source, destination, droppableSource, droppableDestination) => {
 
 	return result;
 };
+type LedType = { id: string; label: string; value: null | number };
 
-const DraggableListGroup = ({ groupName, titles, dataSources, onChange }) => {
+type DraggableListGroupType = {
+	groupName: string;
+	titles: string[];
+	dataSources: [LedType[], LedType[]];
+	onChange: (list: LedType[]) => void;
+};
+
+const DraggableListGroup = ({
+	groupName,
+	titles,
+	dataSources,
+	onChange,
+}: DraggableListGroupType) => {
 	const [droppableIds, setDroppableIds] = useState([]);
 	const [listData, setListData] = useState({});
 
 	useEffect(() => {
-		if (onChange)
-			onChange(
-				Object.keys(listData).reduce((p, n) => {
-					p.push(listData[n]);
-					return p;
-				}, [])
-			);
+		onChange(Object.values(listData));
 	}, [listData]);
 
 	useEffect(() => {
@@ -48,7 +60,7 @@ const DraggableListGroup = ({ groupName, titles, dataSources, onChange }) => {
 		);
 	}, [dataSources, setDroppableIds, setListData]);
 
-	const onDragEnd = (result) => {
+	const onDragEnd = (result: DropResult) => {
 		const { source, destination } = result;
 
 		if (!destination) return;
