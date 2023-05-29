@@ -3,9 +3,34 @@ import * as yup from "yup";
 
 import WebApi from "../Services/WebApi";
 
-export const AppContext = createContext({});
+type buttonLabels = {
+	swapTpShareLabels?: string | boolean;
+	buttonLabelType?: string;
+};
+type AppContextType = {
+	buttonLabels: buttonLabels;
+	gradientNormalColor1?: string;
+	gradientNormalColor2?: string;
+	gradientPressedColor1?: string;
+	gradientPressedColor2?: string;
+	savedColors?: string[];
+	usedPins?: never[];
+	updateUsedPins: () => Promise<[]>;
 
-let checkPins = null;
+	setButtonLabels?: (buttonLabels: buttonLabels) => void;
+	setGradientNormalColor1?: (color: string) => void;
+	setGradientNormalColor2?: (color: string) => void;
+	setGradientPressedColor1?: (color: string) => void;
+	setGradientPressedColor2?: (color: string) => void;
+	setSavedColors?: (colors: string[] | undefined) => void;
+	setUsedPins?: React.Dispatch<React.SetStateAction<never[]>>;
+};
+export const AppContext = createContext<AppContextType>({
+	buttonLabels: { buttonLabelType: "", swapTpShareLabels: "" },
+	updateUsedPins: () => Promise.resolve([]),
+});
+
+let checkPins = [];
 
 declare module "yup" {
 	interface StringSchema {
@@ -36,7 +61,7 @@ yup.addMethod(
 	"validateSelectionWhenValue",
 	function (this: yup.NumberSchema, name, choices) {
 		return this.when(name, {
-			is: (value) => !isNaN(parseInt(value)),
+			is: (value: number) => !isNaN(value),
 			then: () => this.required().oneOf(choices.map((o) => o.value)),
 			otherwise: () => yup.mixed().notRequired(),
 		});
@@ -48,7 +73,7 @@ yup.addMethod(
 	"validateNumberWhenValue",
 	function (this: yup.NumberSchema, name) {
 		return this.when(name, {
-			is: (value) => !isNaN(parseInt(value)),
+			is: (value: number) => !isNaN(value),
 			then: () => this.required(),
 			otherwise: () => yup.mixed().notRequired().strip(),
 		});
@@ -60,7 +85,7 @@ yup.addMethod(
 	"validateMinWhenEqualTo",
 	function (this: yup.NumberSchema, name, compareValue, min) {
 		return this.when(name, {
-			is: (value) => parseInt(value) === compareValue,
+			is: (value: number) => value === compareValue,
 			then: () => this.required().min(min),
 			otherwise: () => yup.mixed().notRequired().strip(),
 		});
@@ -72,7 +97,7 @@ yup.addMethod(
 	"validateRangeWhenValue",
 	function (this: yup.NumberSchema, name, min, max) {
 		return this.when(name, {
-			is: (value) => !isNaN(parseInt(value)),
+			is: (value: number) => !isNaN(value),
 			then: () => this.required().min(min).max(max),
 			otherwise: () => yup.mixed().notRequired().strip(),
 		});
@@ -84,7 +109,7 @@ yup.addMethod(
 	"validatePinWhenEqualTo",
 	function (this: yup.NumberSchema, name, compareName, compareValue) {
 		return this.when(compareName, {
-			is: (value) => parseInt(value) === compareValue,
+			is: (value: number) => value === compareValue,
 			then: () => this.validatePinWhenValue(name),
 			otherwise: () => yup.mixed().notRequired().strip(),
 		});
@@ -120,11 +145,14 @@ export const AppContextProvider = ({
 	});
 
 	const setButtonLabels = useCallback(
-		({ buttonLabelType: newType, swapTpShareLabels: newSwap }) => {
+		({
+			buttonLabelType: newType,
+			swapTpShareLabels: newSwap,
+		}: buttonLabels) => {
 			console.log("buttonLabelType is", newType);
 			newType && localStorage.setItem("buttonLabelType", newType);
 			newSwap !== undefined &&
-				localStorage.setItem("swapTpShareLabels", newSwap);
+				localStorage.setItem("swapTpShareLabels", JSON.stringify(newSwap));
 			_setButtonLabels(({ buttonLabelType, swapTpShareLabels }) => ({
 				buttonLabelType: newType || buttonLabelType,
 				swapTpShareLabels: newSwap !== undefined ? newSwap : swapTpShareLabels,
@@ -138,12 +166,12 @@ export const AppContextProvider = ({
 			? localStorage.getItem("savedColors")?.split(",")
 			: []
 	);
-	const setSavedColors = (savedColors) => {
-		localStorage.setItem("savedColors", savedColors);
+	const setSavedColors = (savedColors: string[] | undefined) => {
+		localStorage.setItem("savedColors", JSON.stringify(savedColors));
 		_setSavedColors(savedColors);
 	};
 
-	const updateButtonLabels = (e) => {
+	const updateButtonLabels = (e: StorageEvent) => {
 		const { key, newValue } = e;
 		if (key === "swapTpShareLabels") {
 			_setButtonLabels(({ buttonLabelType }) => ({
@@ -151,7 +179,7 @@ export const AppContextProvider = ({
 				swapTpShareLabels: newValue === "true",
 			}));
 		}
-		if (key === "buttonLabelType") {
+		if (key === "buttonLabelType" && newValue) {
 			_setButtonLabels(({ swapTpShareLabels }) => ({
 				buttonLabelType: newValue,
 				swapTpShareLabels,
