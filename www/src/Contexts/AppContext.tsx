@@ -7,6 +7,24 @@ export const AppContext = createContext(null);
 
 let checkPins = null;
 
+declare module "yup" {
+	interface StringSchema {
+		validateColor(): this;
+	}
+	interface NumberSchema {
+		validateSelectionWhenValue(
+			msg: string,
+			value: { label: string; value: number }[]
+		): this;
+		validateNumberWhenValue(msg: string): this;
+		validateMinWhenEqualTo(msg: string, value1: number, value2: number): this;
+		validateRangeWhenValue(msg: string, start: number, end: number): this;
+		validatePinWhenEqualTo(msg: string, pin: string, value: number): this;
+		validatePinWhenValue(msg: string): this;
+		checkUsedPins(): this;
+	}
+}
+
 yup.addMethod(yup.string, "validateColor", function (this: yup.StringSchema) {
 	return this.test("", "Valid hex color required", (value) =>
 		value?.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i)
@@ -14,7 +32,7 @@ yup.addMethod(yup.string, "validateColor", function (this: yup.StringSchema) {
 });
 
 yup.addMethod(
-	yup.NumberSchema,
+	yup.number,
 	"validateSelectionWhenValue",
 	function (this: yup.NumberSchema, name, choices) {
 		return this.when(name, {
@@ -26,7 +44,7 @@ yup.addMethod(
 );
 
 yup.addMethod(
-	yup.NumberSchema,
+	yup.number,
 	"validateNumberWhenValue",
 	function (this: yup.NumberSchema, name) {
 		return this.when(name, {
@@ -38,7 +56,7 @@ yup.addMethod(
 );
 
 yup.addMethod(
-	yup.NumberSchema,
+	yup.number,
 	"validateMinWhenEqualTo",
 	function (this: yup.NumberSchema, name, compareValue, min) {
 		return this.when(name, {
@@ -50,7 +68,7 @@ yup.addMethod(
 );
 
 yup.addMethod(
-	yup.NumberSchema,
+	yup.number,
 	"validateRangeWhenValue",
 	function (this: yup.NumberSchema, name, min, max) {
 		return this.when(name, {
@@ -62,7 +80,7 @@ yup.addMethod(
 );
 
 yup.addMethod(
-	yup.NumberSchema,
+	yup.number,
 	"validatePinWhenEqualTo",
 	function (this: yup.NumberSchema, name, compareName, compareValue) {
 		return this.when(compareName, {
@@ -74,24 +92,20 @@ yup.addMethod(
 );
 
 yup.addMethod(
-	yup.NumberSchema,
+	yup.number,
 	"validatePinWhenValue",
 	function (this: yup.NumberSchema) {
 		return this.checkUsedPins();
 	}
 );
 
-yup.addMethod(
-	yup.NumberSchema,
-	"checkUsedPins",
-	function (this: yup.NumberSchema) {
-		return this.test(
-			"",
-			"${originalValue} is unavailable/already assigned!",
-			(value) => checkPins(value)
-		);
-	}
-);
+yup.addMethod(yup.number, "checkUsedPins", function (this: yup.NumberSchema) {
+	return this.test(
+		"",
+		"${originalValue} is unavailable/already assigned!",
+		(value) => checkPins(value)
+	);
+});
 
 export const AppContextProvider = ({ children, ...props }) => {
 	const localValue = localStorage.getItem("buttonLabelType") || "gp2040";
