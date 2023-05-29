@@ -7,27 +7,43 @@ type buttonLabels = {
 	swapTpShareLabels?: string | boolean;
 	buttonLabelType?: string;
 };
+
 type AppContextType = {
 	buttonLabels: buttonLabels;
-	gradientNormalColor1?: string;
-	gradientNormalColor2?: string;
-	gradientPressedColor1?: string;
-	gradientPressedColor2?: string;
-	savedColors?: string[];
-	usedPins?: never[];
+	gradientNormalColor1: string;
+	gradientNormalColor2: string;
+	gradientPressedColor1: string;
+	gradientPressedColor2: string;
+	savedColors: string[] | undefined;
+	usedPins: never[];
 	updateUsedPins: () => Promise<[]>;
 
-	setButtonLabels?: (buttonLabels: buttonLabels) => void;
-	setGradientNormalColor1?: (color: string) => void;
-	setGradientNormalColor2?: (color: string) => void;
-	setGradientPressedColor1?: (color: string) => void;
-	setGradientPressedColor2?: (color: string) => void;
-	setSavedColors?: (colors: string[] | undefined) => void;
-	setUsedPins?: React.Dispatch<React.SetStateAction<never[]>>;
+	setButtonLabels: (buttonLabels: buttonLabels) => void;
+	setGradientNormalColor1: (color: string) => void;
+	setGradientNormalColor2: (color: string) => void;
+	setGradientPressedColor1: (color: string) => void;
+	setGradientPressedColor2: (color: string) => void;
+	setSavedColors: (colors: string[] | undefined) => void;
+	setUsedPins: React.Dispatch<React.SetStateAction<never[]>>;
 };
+
 export const AppContext = createContext<AppContextType>({
 	buttonLabels: { buttonLabelType: "", swapTpShareLabels: "" },
+	gradientNormalColor1: "",
+	gradientNormalColor2: "",
+	gradientPressedColor1: "",
+	gradientPressedColor2: "",
+	savedColors: [],
+	usedPins: [],
+
 	updateUsedPins: () => Promise.resolve([]),
+	setButtonLabels: () => null,
+	setGradientNormalColor1: () => null,
+	setGradientNormalColor2: () => null,
+	setGradientPressedColor1: () => null,
+	setGradientPressedColor2: () => null,
+	setSavedColors: () => null,
+	setUsedPins: () => null,
 });
 
 let checkPins = [];
