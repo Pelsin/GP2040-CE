@@ -20,7 +20,7 @@ type ColorPickerTypes = {
 		c: string,
 		e: React.MouseEvent<Element, MouseEvent> | undefined
 	) => void;
-	onDismiss: (e: MouseEvent) => void;
+	onDismiss: (e: React.MouseEvent) => void;
 	placement?: Placement;
 	show: boolean;
 	title?: string;

@@ -38,7 +38,7 @@ const API_BINDING = {
 };
 
 export default function BackupPage() {
-	const inputFileSelect = useRef();
+	const inputFileSelect = useRef<HTMLInputElement>(null);
 
 	const [optionState, setOptionStateData] = useState({});
 	const [checkValues, setCheckValues] = useState({}); // lazy approach
@@ -104,8 +104,8 @@ export default function BackupPage() {
 		}
 	};
 
-	const handleChange = (ev) => {
-		const id = ev.nativeEvent.target.id;
+	const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const id = event.target.id;
 
 		setCheckValues((checkValues) => ({
 			...checkValues,

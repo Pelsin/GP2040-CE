@@ -731,7 +731,7 @@ const Canvas = ({ value: bitsArray, onChange }) => {
 	const [image, setImage] = useState(null);
 	const [canvasContext, setCanvasContext] = useState(null);
 	const [inverted, setInverted] = useState(false);
-	const canvasRef = useRef();
+	const canvasRef = useRef<HTMLCanvasElement>(null);
 
 	useEffect(() => {
 		setCanvasContext(canvasRef.current.getContext("2d"));
