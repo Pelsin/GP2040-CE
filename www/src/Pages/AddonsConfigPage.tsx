@@ -816,7 +816,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.turboPin || -1}
 									error={errors.turboPin}
-									isInvalid={errors.turboPin}
+									isInvalid={Boolean(errors.turboPin)}
 									onChange={handleChange}
 									min={-1}
 									max={29}
@@ -829,7 +829,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.turboPinLED || -1}
 									error={errors.turboPinLED}
-									isInvalid={errors.turboPinLED}
+									isInvalid={Boolean(errors.turboPinLED)}
 									onChange={handleChange}
 									min={-1}
 									max={29}
@@ -842,7 +842,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.turboShotCount}
 									error={errors.turboShotCount}
-									isInvalid={errors.turboShotCount}
+									isInvalid={Boolean(errors.turboShotCount)}
 									onChange={handleChange}
 									min={2}
 									max={30}
@@ -959,7 +959,7 @@ export default function AddonsConfigPage() {
 											groupClassName="col-sm-3 mb-3"
 											value={values.pinShmupBtn1}
 											error={errors.pinShmupBtn1}
-											isInvalid={errors.pinShmupBtn1}
+											isInvalid={Boolean(errors.pinShmupBtn1)}
 											onChange={handleChange}
 											min={-1}
 											max={29}
@@ -972,7 +972,7 @@ export default function AddonsConfigPage() {
 											groupClassName="col-sm-3 mb-3"
 											value={values.pinShmupBtn2}
 											error={errors.pinShmupBtn2}
-											isInvalid={errors.pinShmupBtn2}
+											isInvalid={Boolean(errors.pinShmupBtn2)}
 											onChange={handleChange}
 											min={-1}
 											max={29}
@@ -985,7 +985,7 @@ export default function AddonsConfigPage() {
 											groupClassName="col-sm-3 mb-3"
 											value={values.pinShmupBtn3}
 											error={errors.pinShmupBtn3}
-											isInvalid={errors.pinShmupBtn3}
+											isInvalid={Boolean(errors.pinShmupBtn3)}
 											onChange={handleChange}
 											min={-1}
 											max={29}
@@ -998,7 +998,7 @@ export default function AddonsConfigPage() {
 											groupClassName="col-sm-3 mb-3"
 											value={values.pinShmupBtn4}
 											error={errors.pinShmupBtn4}
-											isInvalid={errors.pinShmupBtn4}
+											isInvalid={Boolean(errors.pinShmupBtn4)}
 											onChange={handleChange}
 											min={-1}
 											max={29}
@@ -1128,7 +1128,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.sliderLSPin}
 									error={errors.sliderLSPin}
-									isInvalid={errors.sliderLSPin}
+									isInvalid={Boolean(errors.sliderLSPin)}
 									onChange={handleChange}
 									min={-1}
 									max={29}
@@ -1141,7 +1141,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.sliderRSPin}
 									error={errors.sliderRSPin}
-									isInvalid={errors.sliderRSPin}
+									isInvalid={Boolean(errors.sliderRSPin)}
 									onChange={handleChange}
 									min={-1}
 									max={29}
@@ -1172,7 +1172,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.reversePin}
 									error={errors.reversePin}
-									isInvalid={errors.reversePin}
+									isInvalid={Boolean(errors.reversePin)}
 									onChange={handleChange}
 									min={-1}
 									max={29}
@@ -1185,7 +1185,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.reversePinLED}
 									error={errors.reversePinLED}
-									isInvalid={errors.reversePinLED}
+									isInvalid={Boolean(errors.reversePinLED)}
 									onChange={handleChange}
 									min={-1}
 									max={29}
@@ -1199,7 +1199,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.reverseActionUp}
 									error={errors.reverseActionUp}
-									isInvalid={errors.reverseActionUp}
+									isInvalid={Boolean(errors.reverseActionUp)}
 									onChange={handleChange}
 								>
 									{REVERSE_ACTION.map((o, i) => (
@@ -1215,7 +1215,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.reverseActionDown}
 									error={errors.reverseActionDown}
-									isInvalid={errors.reverseActionDown}
+									isInvalid={Boolean(errors.reverseActionDown)}
 									onChange={handleChange}
 								>
 									{REVERSE_ACTION.map((o, i) => (
@@ -1234,7 +1234,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.reverseActionLeft}
 									error={errors.reverseActionLeft}
-									isInvalid={errors.reverseActionLeft}
+									isInvalid={Boolean(errors.reverseActionLeft)}
 									onChange={handleChange}
 								>
 									{REVERSE_ACTION.map((o, i) => (
@@ -1307,7 +1307,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.i2cAnalog1219SCLPin}
 									error={errors.i2cAnalog1219SCLPin}
-									isInvalid={errors.i2cAnalog1219SCLPin}
+									isInvalid={Boolean(errors.i2cAnalog1219SCLPin)}
 									onChange={handleChange}
 									min={-1}
 									max={29}
@@ -1319,7 +1319,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.i2cAnalog1219Block}
 									error={errors.i2cAnalog1219Block}
-									isInvalid={errors.i2cAnalog1219Block}
+									isInvalid={Boolean(errors.i2cAnalog1219Block)}
 									onChange={handleChange}
 								>
 									{I2C_BLOCKS.map((o, i) => (
@@ -1335,7 +1335,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.i2cAnalog1219Speed}
 									error={errors.i2cAnalog1219Speed}
-									isInvalid={errors.i2cAnalog1219Speed}
+									isInvalid={Boolean(errors.i2cAnalog1219Speed)}
 									onChange={handleChange}
 									min={100000}
 								/>
@@ -1348,7 +1348,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.i2cAnalog1219Address}
 									error={errors.i2cAnalog1219Address}
-									isInvalid={errors.i2cAnalog1219Address}
+									isInvalid={Boolean(errors.i2cAnalog1219Address)}
 									onChange={handleChange}
 									maxLength={4}
 								/>
@@ -1495,7 +1495,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.buzzerPin}
 									error={errors.buzzerPin}
-									isInvalid={errors.buzzerPin}
+									isInvalid={Boolean(errors.buzzerPin)}
 									onChange={handleChange}
 									min={-1}
 									max={29}
@@ -1508,7 +1508,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.buzzerVolume}
 									error={errors.buzzerVolume}
-									isInvalid={errors.buzzerVolume}
+									isInvalid={Boolean(errors.buzzerVolume)}
 									onChange={handleChange}
 									min={0}
 									max={100}
@@ -1598,7 +1598,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.playerNumber}
 									error={errors.playerNumber}
-									isInvalid={errors.playerNumber}
+									isInvalid={Boolean(errors.playerNumber)}
 									onChange={handleChange}
 									min={1}
 									max={4}
@@ -1636,7 +1636,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.sliderSOCDModeDefault}
 									error={errors.sliderSOCDModeDefault}
-									isInvalid={errors.sliderSOCDModeDefault}
+									isInvalid={Boolean(errors.sliderSOCDModeDefault)}
 									onChange={handleChange}
 								>
 									{SOCD_MODES.map((o, i) => (
@@ -1655,7 +1655,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.sliderSOCDModeOne}
 									error={errors.sliderSOCDModeOne}
-									isInvalid={errors.sliderSOCDModeOne}
+									isInvalid={Boolean(errors.sliderSOCDModeOne)}
 									onChange={handleChange}
 								>
 									{SOCD_MODES.map((o, i) => (
@@ -1675,7 +1675,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-1 mb-3"
 									value={values.sliderSOCDPinOne}
 									error={errors.sliderSOCDPinOne}
-									isInvalid={errors.sliderSOCDPinOne}
+									isInvalid={Boolean(errors.sliderSOCDPinOne)}
 									onChange={handleChange}
 									min={-1}
 									max={29}
@@ -1687,7 +1687,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.sliderSOCDModeTwo}
 									error={errors.sliderSOCDModeTwo}
-									isInvalid={errors.sliderSOCDModeTwo}
+									isInvalid={Boolean(errors.sliderSOCDModeTwo)}
 									onChange={handleChange}
 								>
 									{SOCD_MODES.map((o, i) => (
@@ -1707,7 +1707,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-1 mb-3"
 									value={values.sliderSOCDPinTwo}
 									error={errors.sliderSOCDPinTwo}
-									isInvalid={errors.sliderSOCDPinTwo}
+									isInvalid={Boolean(errors.sliderSOCDPinTwo)}
 									onChange={handleChange}
 									min={-1}
 									max={29}
@@ -1810,7 +1810,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.wiiExtensionSDAPin}
 									error={errors.wiiExtensionSDAPin}
-									isInvalid={errors.wiiExtensionSDAPin}
+									isInvalid={Boolean(errors.wiiExtensionSDAPin)}
 									onChange={handleChange}
 									min={-1}
 									max={29}
@@ -1823,7 +1823,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.wiiExtensionSCLPin}
 									error={errors.wiiExtensionSCLPin}
-									isInvalid={errors.wiiExtensionSCLPin}
+									isInvalid={Boolean(errors.wiiExtensionSCLPin)}
 									onChange={handleChange}
 									min={-1}
 									max={29}
@@ -1835,7 +1835,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.wiiExtensionBlock}
 									error={errors.wiiExtensionBlock}
-									isInvalid={errors.wiiExtensionBlock}
+									isInvalid={Boolean(errors.wiiExtensionBlock)}
 									onChange={handleChange}
 								>
 									{I2C_BLOCKS.map((o, i) => (
@@ -1854,7 +1854,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.wiiExtensionSpeed}
 									error={errors.wiiExtensionSpeed}
-									isInvalid={errors.wiiExtensionSpeed}
+									isInvalid={Boolean(errors.wiiExtensionSpeed)}
 									onChange={handleChange}
 									min={100000}
 								/>
@@ -1864,9 +1864,7 @@ export default function AddonsConfigPage() {
 							label="Enabled"
 							type="switch"
 							id="WiiExtensionButton"
-							reverse="true"
-							error={undefined}
-							isInvalid={false}
+							reverse
 							checked={Boolean(values.WiiExtensionAddonEnabled)}
 							onChange={(e) => {
 								handleCheckbox("WiiExtensionAddonEnabled", values);
