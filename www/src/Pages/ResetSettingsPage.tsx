@@ -2,7 +2,7 @@ import DangerSection from "../Components/DangerSection";
 import WebApi from "../Services/WebApi";
 
 export default function ResetSettingsPage() {
-	const resetSettings = async (e) => {
+	const resetSettings = async (e: React.MouseEvent<HTMLButtonElement>) => {
 		e.preventDefault();
 		e.stopPropagation();
 
