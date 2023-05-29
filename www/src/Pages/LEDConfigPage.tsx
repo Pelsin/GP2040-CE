@@ -162,22 +162,21 @@ const getLedMap = (buttonLabels, ledButtons, excludeNulls) => {
 	return map;
 };
 
+type FormContextType = {
+	buttonLabels: string | undefined;
+	swapTpShareLabels: string | boolean | undefined;
+	ledButtonMap: never[];
+	ledFormat: number;
+	setDataSources: React.Dispatch<React.SetStateAction<[LedType[], LedType[]]>>;
+};
+
 const FormContext = ({
 	buttonLabels,
 	ledButtonMap,
 	ledFormat,
-	pledColor,
 	swapTpShareLabels,
-	pledPin1,
-	pledPin2,
-	pledPin3,
-	pledPin4,
-	pledIndex1,
-	pledIndex2,
-	pledIndex3,
-	pledIndex4,
 	setDataSources,
-}) => {
+}: FormContextType) => {
 	const { setFieldValue, setValues } = useFormikContext();
 
 	useEffect(() => {
@@ -216,34 +215,6 @@ const FormContext = ({
 	useEffect(() => {
 		setFieldValue("ledButtonMap", ledButtonMap);
 	}, [ledButtonMap, setFieldValue]);
-
-	useEffect(() => {
-		if (pledPin1) setFieldValue("pledPin1", parseInt(pledPin1));
-	}, [pledPin1, setFieldValue]);
-	useEffect(() => {
-		if (pledPin2) setFieldValue("pledPin2", parseInt(pledPin2));
-	}, [pledPin2, setFieldValue]);
-	useEffect(() => {
-		if (pledPin3) setFieldValue("pledPin3", parseInt(pledPin3));
-	}, [pledPin3, setFieldValue]);
-	useEffect(() => {
-		if (pledPin4) setFieldValue("pledPin4", parseInt(pledPin4));
-	}, [pledPin4, setFieldValue]);
-	useEffect(() => {
-		if (pledIndex1) setFieldValue("pledIndex1", parseInt(pledIndex1));
-	}, [pledIndex1, setFieldValue]);
-	useEffect(() => {
-		if (pledIndex2) setFieldValue("pledIndex2", parseInt(pledIndex2));
-	}, [pledIndex2, setFieldValue]);
-	useEffect(() => {
-		if (pledIndex3) setFieldValue("pledIndex3", parseInt(pledIndex3));
-	}, [pledIndex3, setFieldValue]);
-	useEffect(() => {
-		if (pledIndex4) setFieldValue("pledIndex4", parseInt(pledIndex4));
-	}, [pledIndex4, setFieldValue]);
-	useEffect(() => {
-		if (pledColor) setFieldValue("pledColor", pledColor);
-	}, [pledColor, setFieldValue]);
 
 	return null;
 };
@@ -304,7 +275,12 @@ export default function LEDConfigPage() {
 		);
 	};
 
-	const onSubmit = (e, handleSubmit, setValues, values) => {
+	const onSubmit = (
+		e: React.FormEvent<HTMLFormElement>,
+		handleSubmit: (e?: React.FormEvent<HTMLFormElement> | undefined) => void,
+		setValues,
+		values
+	) => {
 		setSaveMessage("");
 		e.preventDefault();
 
@@ -594,10 +570,10 @@ export default function LEDConfigPage() {
 									target={colorPickerTarget}
 								></ColorPicker>
 							</Row>
-							<p hidden={parseInt(values.pledType) !== 0}>
+							<p hidden={values.pledType !== 0}>
 								For PWM LEDs, set each LED to a dedicated GPIO pin.
 							</p>
-							<p hidden={parseInt(values.pledType) !== 1}>
+							<p hidden={values.pledType !== 1}>
 								For RGB LEDs, the indexes must be after the last LED button
 								defined in <em>RGB LED Button Order</em> section and likely{" "}
 								<strong>starts at index {rgbLedStartIndex}</strong>.
@@ -623,13 +599,11 @@ export default function LEDConfigPage() {
 					<Button type="submit">Save</Button>
 					{saveMessage ? <span className="alert">{saveMessage}</span> : null}
 					<FormContext
-						{...{
-							buttonLabels: buttonLabelType,
-							swapTpShareLabels,
-							ledButtonMap,
-							setDataSources,
-							ledFormat: values.ledFormat,
-						}}
+						buttonLabels={buttonLabelType}
+						swapTpShareLabels={swapTpShareLabels}
+						ledButtonMap={ledButtonMap}
+						setDataSources={setDataSources}
+						ledFormat={values.ledFormat}
 					/>
 				</Form>
 			)}
