@@ -3,7 +3,7 @@ import * as yup from "yup";
 
 import WebApi from "../Services/WebApi";
 
-export const AppContext = createContext(null);
+export const AppContext = createContext({});
 
 let checkPins = null;
 
@@ -107,7 +107,11 @@ yup.addMethod(yup.number, "checkUsedPins", function (this: yup.NumberSchema) {
 	);
 });
 
-export const AppContextProvider = ({ children, ...props }) => {
+export const AppContextProvider = ({
+	children,
+}: {
+	children: React.ReactNode;
+}) => {
 	const localValue = localStorage.getItem("buttonLabelType") || "gp2040";
 	const localValue2 = localStorage.getItem("swapTpShareLabels") || false;
 	const [buttonLabels, _setButtonLabels] = useState({
@@ -167,27 +171,27 @@ export const AppContextProvider = ({ children, ...props }) => {
 	}, [buttonLabels.buttonLabelType, buttonLabels.swapTpShareLabels]);
 
 	const [gradientNormalColor1, _setGradientNormalColor1] = useState("#00ffff");
-	const setGradientNormalColor1 = (gradientNormalColor1) => {
+	const setGradientNormalColor1 = (gradientNormalColor1: string) => {
 		localStorage.setItem("gradientNormalColor1", gradientNormalColor1);
 		_setGradientNormalColor1(gradientNormalColor1);
 	};
 
 	const [gradientNormalColor2, _setGradientNormalColor2] = useState("#ff00ff");
-	const setGradientNormalColor2 = (gradientNormalColor2) => {
+	const setGradientNormalColor2 = (gradientNormalColor2: string) => {
 		localStorage.setItem("gradientNormalColor2", gradientNormalColor2);
 		_setGradientNormalColor2(gradientNormalColor2);
 	};
 
 	const [gradientPressedColor1, _setGradientPressedColor1] =
 		useState("#ff00ff");
-	const setGradientPressedColor1 = (gradientPressedColor1) => {
+	const setGradientPressedColor1 = (gradientPressedColor1: string) => {
 		localStorage.setItem("gradientPressedColor1", gradientPressedColor1);
 		_setGradientPressedColor1(gradientPressedColor1);
 	};
 
 	const [gradientPressedColor2, _setGradientPressedColor2] =
 		useState("#00ffff");
-	const setGradientPressedColor2 = (gradientPressedColor2) => {
+	const setGradientPressedColor2 = (gradientPressedColor2: string) => {
 		localStorage.setItem("gradientPressedColor2", gradientPressedColor2);
 		_setGradientPressedColor2(gradientPressedColor2);
 	};
@@ -220,7 +224,6 @@ export const AppContextProvider = ({ children, ...props }) => {
 
 	return (
 		<AppContext.Provider
-			{...props}
 			value={{
 				buttonLabels,
 				gradientNormalColor1,
