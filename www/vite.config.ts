@@ -8,6 +8,7 @@ export default defineConfig({
 		outDir: path.join(__dirname, "build"),
 	},
 	server: {
+		open: true,
 		port: 3000,
 	},
 	plugins: [react()],
