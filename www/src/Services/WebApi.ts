@@ -1,5 +1,6 @@
 import axios from "axios";
 import { hexToInt, rgbIntToHex } from "./Utilities";
+import { displayOptionsType } from "../Data/BoardOptions";
 
 const baseUrl =
 	import.meta.env.MODE === "production" ? "" : "http://localhost:8080";
@@ -47,24 +48,21 @@ async function getDisplayOptions() {
 		.catch(console.error);
 }
 
-async function setDisplayOptions(options, isPreview) {
+async function setDisplayOptions(options: displayOptionsType, isPreview) {
 	const newOptions = sanitizeRequest(options);
-	newOptions.i2cAddress = parseInt(options.i2cAddress);
-	newOptions.buttonLayout = parseInt(options.buttonLayout);
-	newOptions.buttonLayoutRight = parseInt(options.buttonLayoutRight);
-	newOptions.splashMode = parseInt(options.splashMode);
-	newOptions.splashDuration = parseInt(options.splashDuration) * 1000; // seconds to milliseconds
-	newOptions.displaySaverTimeout =
-		parseInt(options.displaySaverTimeout) * 60000; // minutes to milliseconds
-	newOptions.splashChoice = parseInt(options.splashChoice);
+	newOptions.i2cAddress = options.i2cAddress;
+	newOptions.buttonLayout = options.buttonLayout;
+	newOptions.buttonLayoutRight = options.buttonLayoutRight;
+	newOptions.splashMode = options.splashMode;
+	newOptions.splashDuration = options.splashDuration * 1000; // seconds to milliseconds
+	newOptions.displaySaverTimeout = options.displaySaverTimeout * 60000; // minutes to milliseconds
+	newOptions.splashChoice = options.splashChoice;
 
 	if (newOptions.buttonLayoutCustomOptions) {
-		newOptions.buttonLayoutCustomOptions.params.layout = parseInt(
-			options.buttonLayoutCustomOptions?.params?.layout
-		);
-		newOptions.buttonLayoutCustomOptions.paramsRight.layout = parseInt(
-			options.buttonLayoutCustomOptions?.paramsRight?.layout
-		);
+		newOptions.buttonLayoutCustomOptions.params.layout =
+			options.buttonLayoutCustomOptions?.params?.layout;
+		newOptions.buttonLayoutCustomOptions.paramsRight.layout =
+			options.buttonLayoutCustomOptions?.paramsRight?.layout;
 	}
 
 	delete newOptions.splashImage;
@@ -112,7 +110,7 @@ async function getGamepadOptions() {
 		.catch(console.error);
 }
 
-async function setGamepadOptions(options) {
+async function setGamepadOptions(options: displayOptionsType) {
 	return axios
 		.post(`${baseUrl}/api/setGamepadOptions`, sanitizeRequest(options))
 		.then((response) => {
@@ -144,7 +142,7 @@ async function getLedOptions() {
 		.catch(console.error);
 }
 
-async function setLedOptions(options) {
+async function setLedOptions(options: displayOptionsType) {
 	return axios
 		.post(`${baseUrl}/api/setLedOptions`, sanitizeRequest(options))
 		.then((response) => {
@@ -207,8 +205,11 @@ async function getPinMappings() {
 		.get(`${baseUrl}/api/getPinMappings`)
 		.then((response) => {
 			const mappings = { ...baseButtonMappings };
-			for (const prop of Object.keys(response.data))
-				mappings[prop].pin = parseInt(response.data[prop]);
+			for (const prop of Object.keys(response.data)) {
+				mappings[prop as keyof typeof baseButtonMappings].pin = parseInt(
+					response.data[prop]
+				);
+			}
 
 			return mappings;
 		})
@@ -266,7 +267,7 @@ async function getAddonsOptions() {
 		.catch(console.error);
 }
 
-async function setAddonsOptions(options) {
+async function setAddonsOptions(options: displayOptionsType) {
 	return axios
 		.post(`${baseUrl}/api/setAddonsOptions`, sanitizeRequest(options))
 		.then((response) => {
@@ -279,7 +280,7 @@ async function setAddonsOptions(options) {
 		});
 }
 
-async function setPS4Options(options) {
+async function setPS4Options(options: displayOptionsType) {
 	return axios
 		.post(`${baseUrl}/api/setPS4Options`, options)
 		.then((response) => {
@@ -320,7 +321,7 @@ async function reboot(bootMode) {
 		.catch(console.error);
 }
 
-function sanitizeRequest(request) {
+function sanitizeRequest(request: displayOptionsType) {
 	const newRequest = { ...request };
 	delete newRequest.pledIndex1;
 	delete newRequest.pledIndex2;

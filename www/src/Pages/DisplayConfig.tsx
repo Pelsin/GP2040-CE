@@ -9,6 +9,7 @@ import FormControl from "../Components/FormControl";
 import FormSelect from "../Components/FormSelect";
 import Section from "../Components/Section";
 import WebApi from "../Services/WebApi";
+import { displayOptions } from "../Data/BoardOptions";
 
 const ON_OFF_OPTIONS = [
 	{ label: "Disabled", value: 0 },
@@ -67,40 +68,6 @@ const DISPLAY_FLIP_MODES = [
 	{ label: "Mirror", value: 2 },
 	{ label: "Flip and Mirror", value: 3 },
 ];
-
-const defaultValues = {
-	enabled: 0,
-	sdaPin: -1,
-	sclPin: -1,
-	i2cAddress: "0x3C",
-	i2cBlock: 0,
-	i2cSpeed: 400000,
-	flipDisplay: 0,
-	invertDisplay: 0,
-	buttonLayout: 0,
-	buttonLayoutRight: 3,
-	splashDuration: 0,
-	splashMode: 3,
-	splashImage: Array(16 * 64).fill(0), // 128 columns represented by bytes so 16 and 64 rows
-	invertSplash: false,
-	buttonLayoutCustomOptions: {
-		params: {
-			layout: 0,
-			startX: 8,
-			startY: 28,
-			buttonRadius: 8,
-			buttonPadding: 2,
-		},
-		paramsRight: {
-			layout: 3,
-			startX: 8,
-			startY: 28,
-			buttonRadius: 8,
-			buttonPadding: 2,
-		},
-	},
-	displaySaverTimeout: 0,
-};
 
 const buttonLayoutSchema = yup
 	.number()
@@ -263,7 +230,7 @@ export default function DisplayConfigPage() {
 		<Formik
 			validationSchema={schema}
 			onSubmit={onSuccess}
-			initialValues={defaultValues}
+			initialValues={displayOptions}
 		>
 			{({ handleSubmit, handleChange, values, errors }) => (
 				<Section title="Display Configuration">
