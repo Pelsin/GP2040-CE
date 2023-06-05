@@ -94,14 +94,14 @@ const REVERSE_ACTION = [
 	{ label: "Neutral", value: 2 },
 ];
 
-function hexToBytes(hex) {
+function hexToBytes(hex: string) {
 	const bytes = [];
 	for (let c = 0; c < hex.length; c += 2)
-		bytes.push(parseInt(hex.substr(c, 2), 16));
+		bytes.push(parseInt(hex.substring(c, c + 2), 16));
 	return bytes;
 }
 
-function mbedmpi2b64(mpi) {
+function mbedmpi2b64(mpi: string[]) {
 	const arr = new Uint8Array(mpi.length * 4);
 	let cnt = 0;
 	for (let i = 0; i < mpi.length; i++) {
@@ -1294,7 +1294,7 @@ export default function AddonsConfigPage() {
 									groupClassName="col-sm-3 mb-3"
 									value={values.i2cAnalog1219SDAPin}
 									error={errors.i2cAnalog1219SDAPin}
-									isInvalid={errors.i2cAnalog1219SDAPin}
+									isInvalid={Boolean(errors.i2cAnalog1219SDAPin)}
 									onChange={handleChange}
 									min={-1}
 									max={29}
