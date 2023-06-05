@@ -256,9 +256,11 @@ export default function LEDConfigPage() {
 		values.pledColor = hexColor;
 	};
 
-	const toggleRgbPledPicker = (e) => {
-		e.stopPropagation();
-		setColorPickerTarget(e.target);
+	const toggleRgbPledPicker = (
+		event: React.BaseSyntheticEvent<HTMLInputElement>
+	) => {
+		event.stopPropagation();
+		setColorPickerTarget(event.target);
 		setShowPicker(!showPicker);
 	};
 
