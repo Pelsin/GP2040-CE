@@ -5,7 +5,6 @@ import React, {
 	useMemo,
 	useState,
 } from 'react';
-import Select from 'react-select';
 import { NavLink } from 'react-router-dom';
 import { Alert, Button, Form, Tab, Tabs } from 'react-bootstrap';
 import { Trans, useTranslation } from 'react-i18next';
@@ -14,18 +13,20 @@ import omit from 'lodash/omit';
 import zip from 'lodash/zip';
 
 import { AppContext } from '../Contexts/AppContext';
-import Section from '../Components/Section';
 import usePinStore from '../Store/usePinStore';
+import useProfilesStore from '../Store/useProfilesStore';
+import useMultiPinStore from '../Store/useMultiPinStore';
 
+import Section from '../Components/Section';
+import CustomSelect from '../Components/CustomSelect';
 import CaptureButton from '../Components/CaptureButton';
+
 import { getButtonLabels } from '../Data/Buttons';
 import {
 	BUTTON_ACTIONS,
 	NON_SELECTABLE_BUTTON_ACTIONS,
 	PinActionValues,
 } from '../Data/Pins';
-import useProfilesStore from '../Store/useProfilesStore';
-import useMultiPinStore from '../Store/useMultiPinStore';
 
 type PinCell = [string, PinActionValues];
 type PinRow = [PinCell, PinCell];
@@ -35,7 +36,7 @@ const isNonSelectable = (value: PinActionValues) =>
 	NON_SELECTABLE_BUTTON_ACTIONS.includes(value);
 
 const options = Object.entries(BUTTON_ACTIONS)
-	.filter(([_, value]) => !isNonSelectable(value))
+	.filter(([, value]) => !isNonSelectable(value))
 	.map(([key, value]) => ({
 		label: key,
 		value,
@@ -88,9 +89,8 @@ const PinsForm = ({ savePins, pins, setPinAction, onCopy }: PinsFormTypes) => {
 				<div className="d-flex align-items-center" style={{ width: '4rem' }}>
 					<label htmlFor={pin}>{pin.toUpperCase()}</label>
 				</div>
-				<Select
+				<CustomSelect
 					inputId={pin}
-					className="text-primary flex-grow-1"
 					isClearable
 					isSearchable
 					options={options}
@@ -161,8 +161,13 @@ const PinsForm = ({ savePins, pins, setPinAction, onCopy }: PinsFormTypes) => {
 export default function PinMappingPage() {
 	const { fetchPins, pins, savePins, setPinAction } = usePinStore();
 	const { fetchPins: fetchMultiPins } = useMultiPinStore();
-	const { fetchProfiles, profiles, saveProfiles, setProfileAction, setProfile } =
-		useProfilesStore();
+	const {
+		fetchProfiles,
+		profiles,
+		saveProfiles,
+		setProfileAction,
+		setProfile,
+	} = useProfilesStore();
 
 	const [pressedPin, setPressedPin] = useState<number | null>(null);
 
