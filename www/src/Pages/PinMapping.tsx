@@ -13,26 +13,38 @@ import omit from 'lodash/omit';
 import zip from 'lodash/zip';
 
 import { AppContext } from '../Contexts/AppContext';
-import usePinStore from '../Store/usePinStore';
+import usePinStore, { MaskPayload, setPinType } from '../Store/usePinStore';
 import useProfilesStore from '../Store/useProfilesStore';
-import useMultiPinStore from '../Store/useMultiPinStore';
 
 import Section from '../Components/Section';
 import CustomSelect from '../Components/CustomSelect';
 import CaptureButton from '../Components/CaptureButton';
 
-import { getButtonLabels } from '../Data/Buttons';
+import {
+	BUTTON_MASKS,
+	BUTTON_MASKS_OPTIONS,
+	DPAD_MASKS,
+	getButtonLabels,
+} from '../Data/Buttons';
 import {
 	BUTTON_ACTIONS,
 	NON_SELECTABLE_BUTTON_ACTIONS,
 	PinActionValues,
 } from '../Data/Pins';
 
-type PinCell = [string, PinActionValues];
+type PinCell = [string, MaskPayload];
 type PinRow = [PinCell, PinCell];
 type PinList = [PinRow];
 
-const isNonSelectable = (value: PinActionValues) =>
+const MASK_OPTIONS = [
+	...BUTTON_MASKS.map((mask) => ({ ...mask, type: 'customButtonMask' })),
+	...DPAD_MASKS.map((mask) => ({ ...mask, type: 'customDpadMask' })),
+];
+
+const getButtonKeyByValue = (value: PinActionValues) =>
+	invert(BUTTON_ACTIONS)[value];
+
+const isNonSelectable = (value) =>
 	NON_SELECTABLE_BUTTON_ACTIONS.includes(value);
 
 const options = Object.entries(BUTTON_ACTIONS)
@@ -42,19 +54,19 @@ const options = Object.entries(BUTTON_ACTIONS)
 		value,
 	}));
 
-const getOption = (actionId) => ({
-	label: invert(BUTTON_ACTIONS)[actionId],
-	value: actionId,
+const getValue = (pin) => ({
+	label: getButtonKeyByValue(pin.action),
+	value: pin,
 });
 
 type PinsFormTypes = {
 	savePins: () => void;
-	pins: { [key: string]: PinActionValues };
-	setPinAction: (pin: string, action: PinActionValues) => void;
+	pins: { [key: string]: MaskPayload };
+	setPin: setPinType;
 	onCopy?: () => void;
 };
 
-const PinsForm = ({ savePins, pins, setPinAction, onCopy }: PinsFormTypes) => {
+const PinsForm = ({ savePins, pins, setPin, onCopy }: PinsFormTypes) => {
 	const { buttonLabels, updateUsedPins } = useContext(AppContext);
 	const [saveMessage, setSaveMessage] = useState('');
 
@@ -84,7 +96,7 @@ const PinsForm = ({ savePins, pins, setPinAction, onCopy }: PinsFormTypes) => {
 	}, [pins]);
 
 	const createCell = useCallback(
-		([pin, pinAction]: PinCell) => (
+		([pin, pinData]: PinCell) => (
 			<div className="d-flex col py-2">
 				<div className="d-flex align-items-center" style={{ width: '4rem' }}>
 					<label htmlFor={pin}>{pin.toUpperCase()}</label>
@@ -94,8 +106,8 @@ const PinsForm = ({ savePins, pins, setPinAction, onCopy }: PinsFormTypes) => {
 					isClearable
 					isSearchable
 					options={options}
-					value={getOption(pinAction)}
-					isDisabled={isNonSelectable(pinAction)}
+					value={getValue(pinData)}
+					isDisabled={isNonSelectable(pinData.action)}
 					getOptionLabel={(option) => {
 						const labelKey = option.label.split('BUTTON_PRESS_').pop();
 						// Need to fallback as some button actions are not part of button names
@@ -104,11 +116,42 @@ const PinsForm = ({ savePins, pins, setPinAction, onCopy }: PinsFormTypes) => {
 							t(`PinMapping:actions.${option.label}`)
 						);
 					}}
-					onChange={(change) =>
-						setPinAction(
-							pin,
-							change?.value === undefined ? -10 : change.value, // On clear set to -10
+					// onChange={(change) =>
+					// 	setPin(
+					// 		pin,
+					// 		change?.value === undefined ? -10 : change.value, // On clear set to -10
+					// 	)
+					// }
+					isMulti={
+						pinData.action === BUTTON_ACTIONS.CUSTOM_BUTTON_COMBO ||
+						MASK_OPTIONS.some(
+							({ label }) =>
+								label.toUpperCase() ===
+								getButtonKeyByValue(pinData.action)
+									.split('BUTTON_PRESS_')
+									.pop(),
 						)
+					}
+					onChange={
+						(selected) => {
+							console.log('selected', selected);
+						}
+						// setPin(
+						// 	pin,
+						// 	selected.reduce(
+						// 		(masks, option) => ({
+						// 			customButtonMask:
+						// 				option.type === 'customButtonMask'
+						// 					? masks.customButtonMask ^ option.value
+						// 					: masks.customButtonMask,
+						// 			customDpadMask:
+						// 				option.type === 'customDpadMask'
+						// 					? masks.customDpadMask ^ option.value
+						// 					: masks.customDpadMask,
+						// 		}),
+						// 		{ customButtonMask: 0, customDpadMask: 0 },
+						// 	),
+						// )
 					}
 				/>
 			</div>
@@ -123,7 +166,7 @@ const PinsForm = ({ savePins, pins, setPinAction, onCopy }: PinsFormTypes) => {
 					<CaptureButton
 						labels={Object.values(buttonNames)}
 						onChange={(label, pin) =>
-							setPinAction(
+							setPin(
 								// Convert getHeldPins format to setPinMappings format
 								parseInt(pin) < 10 ? `pin0${pin}` : `pin${pin}`,
 								// Maps current mode buttons to actions
@@ -159,8 +202,7 @@ const PinsForm = ({ savePins, pins, setPinAction, onCopy }: PinsFormTypes) => {
 };
 
 export default function PinMappingPage() {
-	const { fetchPins, pins, savePins, setPinAction } = usePinStore();
-	const { fetchPins: fetchMultiPins } = useMultiPinStore();
+	const { fetchPins, pins, savePins, setPin } = usePinStore();
 	const {
 		fetchProfiles,
 		profiles,
@@ -181,8 +223,7 @@ export default function PinMappingPage() {
 	const saveAll = useCallback(() => {
 		savePins();
 		saveProfiles();
-		fetchMultiPins();
-	}, [savePins, saveProfiles, fetchMultiPins]);
+	}, [savePins, saveProfiles]);
 
 	return (
 		<>
@@ -214,13 +255,9 @@ export default function PinMappingPage() {
 
 				<Tabs id="profiles">
 					<Tab eventKey="Base" title="Base(Profile 1)">
-						<PinsForm
-							pins={pins}
-							savePins={saveAll}
-							setPinAction={setPinAction}
-						/>
+						<PinsForm pins={pins} savePins={saveAll} setPin={setPin} />
 					</Tab>
-					{profiles.map((profilePins, profileIndex) => (
+					{/* {profiles.map((profilePins, profileIndex) => (
 						<Tab
 							key={`Profile${profileIndex + 2}`}
 							eventKey={`Profile${profileIndex + 2}`}
@@ -229,7 +266,7 @@ export default function PinMappingPage() {
 							<PinsForm
 								pins={profilePins}
 								savePins={saveAll}
-								setPinAction={(pin, action) => {
+								setPin={(pin, action) => {
 									setProfileAction(profileIndex, pin, action);
 								}}
 								onCopy={() => {
@@ -237,7 +274,7 @@ export default function PinMappingPage() {
 								}}
 							/>
 						</Tab>
-					))}
+					))} */}
 				</Tabs>
 			</Section>
 		</>

@@ -5,7 +5,6 @@ import React, {
 	useMemo,
 	useState,
 } from 'react';
-import Select from 'react-select';
 import { Alert, Button, Form, Row } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import zip from 'lodash/zip';
@@ -15,14 +14,14 @@ import { AppContext } from '../Contexts/AppContext';
 import Section from '../Components/Section';
 
 import { BUTTON_MASKS, DPAD_MASKS, getButtonLabels } from '../Data/Buttons';
-import useMultiPinStore, { MaskPayload } from '../Store/useMultiPinStore';
-import usePinStore from '../Store/usePinStore';
+import usePinStore, { MaskPayload } from '../Store/usePinStore';
 import {
 	NON_SELECTABLE_BUTTON_ACTIONS,
 	BUTTON_ACTIONS,
 	PinActionValues,
 } from '../Data/Pins';
 import invert from 'lodash/invert';
+import CustomSelect from '../Components/CustomSelect';
 
 const isNonSelectable = (value: PinActionValues) =>
 	NON_SELECTABLE_BUTTON_ACTIONS.filter(
@@ -87,7 +86,7 @@ export default function MultiMappingPage() {
 				>
 					<label htmlFor={pin}>{pin.toUpperCase()}</label>
 				</div>
-				<Select
+				<CustomSelect
 					inputId={pin}
 					className="text-primary flex-grow-1"
 					isClearable
@@ -140,11 +139,7 @@ export default function MultiMappingPage() {
 		<>
 			<Section title={t('MultiMapping:header-text')}>
 				<Row className="mb-3">
-					<p>
-						{t(
-							'MultiMapping:profile-limitation',
-						)}
-					</p>
+					<p>{t('MultiMapping:profile-limitation')}</p>
 				</Row>
 				<Form onSubmit={handleSubmit}>
 					<div className="gx-3">

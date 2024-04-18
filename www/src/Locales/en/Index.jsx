@@ -8,7 +8,6 @@ import DisplayConfig from './DisplayConfig';
 import HomePage from './HomePage';
 import InputMacroAddon from './InputMacroAddon';
 import LedConfig from './LedConfig';
-import MultiMapping from './MultiMapping';
 import Navigation from './Navigation';
 import PeripheralMapping from './PeripheralMapping';
 import PinMapping from './PinMapping';
@@ -28,7 +27,6 @@ export default {
 	HomePage,
 	InputMacroAddon,
 	LedConfig,
-	MultiMapping,
 	Navigation,
 	PeripheralMapping,
 	PinMapping,
