@@ -20,44 +20,39 @@ import Section from '../Components/Section';
 import CustomSelect from '../Components/CustomSelect';
 import CaptureButton from '../Components/CaptureButton';
 
-import {
-	BUTTON_MASKS,
-	BUTTON_MASKS_OPTIONS,
-	DPAD_MASKS,
-	getButtonLabels,
-} from '../Data/Buttons';
-import {
-	BUTTON_ACTIONS,
-	NON_SELECTABLE_BUTTON_ACTIONS,
-	PinActionValues,
-} from '../Data/Pins';
+import { BUTTON_MASKS, DPAD_MASKS, getButtonLabels } from '../Data/Buttons';
+import { BUTTON_ACTIONS, NON_SELECTABLE_BUTTON_ACTIONS } from '../Data/Pins';
 
 type PinCell = [string, MaskPayload];
 type PinRow = [PinCell, PinCell];
 type PinList = [PinRow];
 
-const MASK_OPTIONS = [
-	...BUTTON_MASKS.map((mask) => ({ ...mask, type: 'customButtonMask' })),
-	...DPAD_MASKS.map((mask) => ({ ...mask, type: 'customDpadMask' })),
-];
-
-const getButtonKeyByValue = (value: PinActionValues) =>
-	invert(BUTTON_ACTIONS)[value];
+const getMask = (maskArr, key) =>
+	maskArr.find(
+		({ label }) => label?.toUpperCase() === key.split('BUTTON_PRESS_')?.pop(),
+	);
 
 const isNonSelectable = (value) =>
 	NON_SELECTABLE_BUTTON_ACTIONS.includes(value);
 
 const options = Object.entries(BUTTON_ACTIONS)
 	.filter(([, value]) => !isNonSelectable(value))
-	.map(([key, value]) => ({
-		label: key,
-		value,
-	}));
+	.map(([key, value]) => {
+		const buttonMask = getMask(BUTTON_MASKS, key);
+		const dpadMask = getMask(DPAD_MASKS, key);
 
-const getValue = (pin) => ({
-	label: getButtonKeyByValue(pin.action),
-	value: pin,
-});
+		return {
+			label: key,
+			value,
+			type: buttonMask
+				? 'customButtonMask'
+				: dpadMask
+				? 'customDpadMask'
+				: 'action',
+			customButtonMask: buttonMask?.value || 0,
+			customDpadMask: dpadMask?.value || 0,
+		};
+	});
 
 type PinsFormTypes = {
 	savePins: () => void;
@@ -106,53 +101,74 @@ const PinsForm = ({ savePins, pins, setPin, onCopy }: PinsFormTypes) => {
 					isClearable
 					isSearchable
 					options={options}
-					value={getValue(pinData)}
-					isDisabled={isNonSelectable(pinData.action)}
+					value={
+						pinData.action === BUTTON_ACTIONS.CUSTOM_BUTTON_COMBO
+							? options.filter(
+									({ type, customButtonMask, customDpadMask }) =>
+										(pinData.customButtonMask & customButtonMask &&
+											type === 'customButtonMask') ||
+										(pinData.customDpadMask & customDpadMask &&
+											type === 'customDpadMask'),
+							  )
+							: options.find((option) => option.value === pinData.action)
+					}
+					isDisabled={
+						isNonSelectable(pinData.action) &&
+						pinData.action !== BUTTON_ACTIONS.CUSTOM_BUTTON_COMBO
+					}
 					getOptionLabel={(option) => {
-						const labelKey = option.label.split('BUTTON_PRESS_').pop();
+						const labelKey = option.label?.split('BUTTON_PRESS_')?.pop();
 						// Need to fallback as some button actions are not part of button names
 						return (
 							(labelKey && buttonNames[labelKey]) ||
 							t(`PinMapping:actions.${option.label}`)
 						);
 					}}
-					// onChange={(change) =>
-					// 	setPin(
-					// 		pin,
-					// 		change?.value === undefined ? -10 : change.value, // On clear set to -10
-					// 	)
-					// }
+					// Show multi selection
 					isMulti={
 						pinData.action === BUTTON_ACTIONS.CUSTOM_BUTTON_COMBO ||
-						MASK_OPTIONS.some(
-							({ label }) =>
-								label.toUpperCase() ===
-								getButtonKeyByValue(pinData.action)
-									.split('BUTTON_PRESS_')
-									.pop(),
-						)
+						options.find(({ value }) => value === pinData.action)?.type !==
+							'action'
 					}
-					onChange={
-						(selected) => {
-							console.log('selected', selected);
+					onChange={(selected) => {
+						if (Array.isArray(selected) && selected.length) {
+							const actionOption = selected.find(
+								({ type }) => type === 'action',
+							);
+							// Replace current options to single option if choosing none mask type
+							if (actionOption) {
+								setPin(pin, {
+									action: actionOption.value,
+									customButtonMask: 0,
+									customDpadMask: 0,
+								});
+							} else {
+								setPin(
+									pin,
+									selected.reduce(
+										(masks, option) => ({
+											action: BUTTON_ACTIONS.CUSTOM_BUTTON_COMBO,
+											customButtonMask:
+												option.type === 'customButtonMask'
+													? masks.customButtonMask ^ option.customButtonMask
+													: masks.customButtonMask,
+											customDpadMask:
+												option.type === 'customDpadMask'
+													? masks.customDpadMask ^ option.customDpadMask
+													: masks.customDpadMask,
+										}),
+										{ customButtonMask: 0, customDpadMask: 0 },
+									),
+								);
+							}
+						} else {
+							setPin(pin, {
+								action: selected?.value || BUTTON_ACTIONS.NONE,
+								customButtonMask: 0,
+								customDpadMask: 0,
+							});
 						}
-						// setPin(
-						// 	pin,
-						// 	selected.reduce(
-						// 		(masks, option) => ({
-						// 			customButtonMask:
-						// 				option.type === 'customButtonMask'
-						// 					? masks.customButtonMask ^ option.value
-						// 					: masks.customButtonMask,
-						// 			customDpadMask:
-						// 				option.type === 'customDpadMask'
-						// 					? masks.customDpadMask ^ option.value
-						// 					: masks.customDpadMask,
-						// 		}),
-						// 		{ customButtonMask: 0, customDpadMask: 0 },
-						// 	),
-						// )
-					}
+					}}
 				/>
 			</div>
 		),

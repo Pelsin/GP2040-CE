@@ -18,7 +18,7 @@ type State = {
 };
 export type setPinType = (
 	pin: string,
-	{ customButtonMask, customDpadMask }: CustomMasks,
+	{ action, customButtonMask, customDpadMask }: MaskPayload,
 ) => void;
 
 type Actions = {
@@ -80,24 +80,16 @@ const usePinStore = create<State & Actions>()((set, get) => ({
 			loadingPins: false,
 		}));
 	},
-	// setPinAction: (pin, action) =>
-	// 	set((state) => ({
-	// 		...state,
-	// 		pins: { ...state.pins, [pin]: action },
-	// 	})),
 
-	setPin: (pin, { customButtonMask, customDpadMask }) =>
+	setPin: (pin, { action, customButtonMask = 0, customDpadMask = 0 }) =>
 		set((state) => ({
 			...state,
 			pins: {
 				...state.pins,
 				[pin]: {
-					action:
-						customButtonMask || customDpadMask
-							? BUTTON_ACTIONS.CUSTOM_BUTTON_COMBO
-							: BUTTON_ACTIONS.NONE,
+					action,
 					customButtonMask,
-					customDpadMask: customDpadMask,
+					customDpadMask,
 				},
 			},
 		})),
