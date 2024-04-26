@@ -6,7 +6,7 @@ import React, {
 	useState,
 } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Alert, Button, Form, Tab, Tabs } from 'react-bootstrap';
+import { Alert, Button, Col, Form, Nav, Row, Tab, Tabs } from 'react-bootstrap';
 import { Trans, useTranslation } from 'react-i18next';
 import invert from 'lodash/invert';
 import omit from 'lodash/omit';
@@ -21,7 +21,12 @@ import CustomSelect from '../Components/CustomSelect';
 import CaptureButton from '../Components/CaptureButton';
 
 import { BUTTON_MASKS, DPAD_MASKS, getButtonLabels } from '../Data/Buttons';
-import { BUTTON_ACTIONS, NON_SELECTABLE_BUTTON_ACTIONS } from '../Data/Pins';
+import {
+	BUTTON_ACTIONS,
+	NON_SELECTABLE_BUTTON_ACTIONS,
+	PinActionValues,
+} from '../Data/Pins';
+import './PinMapping.scss';
 
 type PinCell = [string, MaskPayload];
 type PinRow = [PinCell, PinCell];
@@ -217,82 +222,182 @@ const PinsForm = ({ savePins, pins, setPin, onCopy }: PinsFormTypes) => {
 	);
 };
 
-export default function PinMappingPage() {
+// export default function PinMappingPage() {
+// 	const { fetchPins, pins, savePins, setPin } = usePinStore();
+// 	const {
+// 		fetchProfiles,
+// 		profiles,
+// 		saveProfiles,
+// 		setProfileAction,
+// 		setProfile,
+// 	} = useProfilesStore();
+
+// 	const [pressedPin, setPressedPin] = useState<number | null>(null);
+
+// 	const { t } = useTranslation('');
+
+// 	useEffect(() => {
+// 		fetchPins();
+// 		fetchProfiles();
+// 	}, []);
+
+// 	const saveAll = useCallback(() => {
+// 		savePins();
+// 		saveProfiles();
+// 	}, [savePins, saveProfiles]);
+
+// 	return (
+// 		<>
+// 			<div className="alert alert-warning">
+// 				<Trans ns="PinMapping" i18nKey="alert-text">
+// 					Mapping buttons to pins that aren&apos;t connected or available can
+// 					leave the device in non-functional state. To clear the invalid
+// 					configuration go to the{' '}
+// 					<NavLink to="/reset-settings">Reset Settings</NavLink> page.
+// 				</Trans>
+// 				<br />
+// 				<br />
+// 				{t(`PinMapping:profile-pins-warning`)}
+// 			</div>
+// 			<Section title={t('PinMapping:header-text')}>
+// 				<p>{t('PinMapping:sub-header-text')}</p>
+// 				<div className="mb-3">
+// 					<CaptureButton
+// 						buttonLabel={t('PinMapping:pin-viewer')}
+// 						labels={['']}
+// 						onChange={(_, pin) => setPressedPin(pin)}
+// 					/>
+// 				</div>
+// 				{pressedPin !== null && (
+// 					<div className="alert alert-info">
+// 						<strong>{t('PinMapping:pin-pressed', { pressedPin })}</strong>
+// 					</div>
+// 				)}
+
+// 				<Tabs id="profiles">
+// 					<Tab eventKey="Base" title="Base(Profile 1)">
+// 						<PinsForm pins={pins} savePins={saveAll} setPin={setPin} />
+// 					</Tab>
+// 					{/* {profiles.map((profilePins, profileIndex) => (
+// 						<Tab
+// 							key={`Profile${profileIndex + 2}`}
+// 							eventKey={`Profile${profileIndex + 2}`}
+// 							title={`Profile ${profileIndex + 2}`}
+// 						>
+// 							<PinsForm
+// 								pins={profilePins}
+// 								savePins={saveAll}
+// 								setPin={(pin, action) => {
+// 									setProfileAction(profileIndex, pin, action);
+// 								}}
+// 								onCopy={() => {
+// 									setProfile(profileIndex, pins);
+// 								}}
+// 							/>
+// 						</Tab>
+// 					))} */}
+// 				</Tabs>
+// 			</Section>
+// 		</>
+// 	);
+// }
+
+export default function PinMapping() {
+	const { buttonLabels, updateUsedPins } = useContext(AppContext);
 	const { fetchPins, pins, savePins, setPin } = usePinStore();
-	const {
-		fetchProfiles,
-		profiles,
-		saveProfiles,
-		setProfileAction,
-		setProfile,
-	} = useProfilesStore();
-
 	const [pressedPin, setPressedPin] = useState<number | null>(null);
-
 	const { t } = useTranslation('');
+
+	const { buttonLabelType, swapTpShareLabels } = buttonLabels;
+	const CURRENT_BUTTONS = getButtonLabels(buttonLabelType, swapTpShareLabels);
+	const buttonNames = omit(CURRENT_BUTTONS, ['label', 'value']);
 
 	useEffect(() => {
 		fetchPins();
-		fetchProfiles();
 	}, []);
 
-	const saveAll = useCallback(() => {
-		savePins();
-		saveProfiles();
-	}, [savePins, saveProfiles]);
+	const isDisabled = useCallback(
+		(action: PinActionValues) =>
+			isNonSelectable(action) && action !== BUTTON_ACTIONS.CUSTOM_BUTTON_COMBO,
+		[],
+	);
+
+	const getOptionLabel = useCallback(
+		(option) => {
+			const labelKey = option.label?.split('BUTTON_PRESS_')?.pop();
+			// Need to fallback as some button actions are not part of button names
+			return (
+				(labelKey && buttonNames[labelKey]) ||
+				t(`PinMapping:actions.${option.label}`)
+			);
+		},
+		[buttonNames],
+	);
 
 	return (
-		<>
-			<div className="alert alert-warning">
-				<Trans ns="PinMapping" i18nKey="alert-text">
-					Mapping buttons to pins that aren&apos;t connected or available can
-					leave the device in non-functional state. To clear the invalid
-					configuration go to the{' '}
-					<NavLink to="/reset-settings">Reset Settings</NavLink> page.
-				</Trans>
-				<br />
-				<br />
-				{t(`PinMapping:profile-pins-warning`)}
-			</div>
-			<Section title={t('PinMapping:header-text')}>
-				<p>{t('PinMapping:sub-header-text')}</p>
-				<div className="mb-3">
-					<CaptureButton
-						buttonLabel={t('PinMapping:pin-viewer')}
-						labels={['']}
-						onChange={(_, pin) => setPressedPin(pin)}
-					/>
-				</div>
-				{pressedPin !== null && (
-					<div className="alert alert-info">
-						<strong>{t('PinMapping:pin-pressed', { pressedPin })}</strong>
+		<Tab.Container defaultActiveKey="profile-1">
+			<Row>
+				<Col sm={2}>
+					<Nav variant="pills" className="flex-column">
+						<Nav.Item>
+							<Nav.Link eventKey="profile-1">Base(Profile 1)</Nav.Link>
+						</Nav.Item>
+						<Nav.Item>
+							<Nav.Link eventKey="profile-2">Profile 2</Nav.Link>
+						</Nav.Item>
+						<Nav.Item>
+							<Nav.Link eventKey="profile-3">Profile 3</Nav.Link>
+						</Nav.Item>
+						<Nav.Item>
+							<Nav.Link eventKey="profile-4">Profile 4</Nav.Link>
+						</Nav.Item>
+					</Nav>
+					<hr />
+					{/* <p>{t('PinMapping:sub-header-text')}</p> */}
+					<div className="d-flex justify-content-center">
+						<CaptureButton
+							buttonLabel={t('PinMapping:pin-viewer')}
+							labels={['']}
+							onChange={(_, pin) => setPressedPin(pin)}
+						/>
 					</div>
-				)}
-
-				<Tabs id="profiles">
-					<Tab eventKey="Base" title="Base(Profile 1)">
-						<PinsForm pins={pins} savePins={saveAll} setPin={setPin} />
-					</Tab>
-					{/* {profiles.map((profilePins, profileIndex) => (
-						<Tab
-							key={`Profile${profileIndex + 2}`}
-							eventKey={`Profile${profileIndex + 2}`}
-							title={`Profile ${profileIndex + 2}`}
-						>
-							<PinsForm
-								pins={profilePins}
-								savePins={saveAll}
-								setPin={(pin, action) => {
-									setProfileAction(profileIndex, pin, action);
-								}}
-								onCopy={() => {
-									setProfile(profileIndex, pins);
-								}}
-							/>
-						</Tab>
-					))} */}
-				</Tabs>
-			</Section>
-		</>
+					{pressedPin !== null && (
+						<div className="alert alert-info mt-3">
+							<strong>{t('PinMapping:pin-pressed', { pressedPin })}</strong>
+						</div>
+					)}
+				</Col>
+				<Col sm={10}>
+					<Tab.Content>
+						<Tab.Pane eventKey="profile-1">
+							<Section title={t('PinMapping:header-text')}>
+								<div className="pin-grid gap-3">
+									{Object.entries(pins).map(([key, pinData], index) => (
+										<div
+											key={`select-${index}`}
+											className="d-flex col align-items-center"
+										>
+											<div className="d-flex " style={{ width: '4rem' }}>
+												<label htmlFor={key}>{key.toUpperCase()}</label>
+											</div>
+											<CustomSelect
+												isClearable
+												isMulti
+												options={options}
+												isDisabled={isDisabled(pinData.action)}
+												getOptionLabel={getOptionLabel}
+											/>
+										</div>
+									))}
+								</div>
+							</Section>
+						</Tab.Pane>
+						<Tab.Pane eventKey="profile-2">profile-2</Tab.Pane>
+						<Tab.Pane eventKey="profile-3">profile-3</Tab.Pane>
+						<Tab.Pane eventKey="profile-4">profile-4</Tab.Pane>
+					</Tab.Content>
+				</Col>
+			</Row>
+		</Tab.Container>
 	);
 }
