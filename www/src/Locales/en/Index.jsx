@@ -1,37 +1,39 @@
-import AddonsConfig from './AddonsConfig';
-import BackupPage from './BackupPage';
-import CaptureButton from './CaptureButton';
 import Common from './Common';
-import Components from './Components';
-import CustomTheme from './CustomTheme';
-import DisplayConfig from './DisplayConfig';
 import HomePage from './HomePage';
-import InputMacroAddon from './InputMacroAddon';
-import LedConfig from './LedConfig';
 import Navigation from './Navigation';
-import PeripheralMapping from './PeripheralMapping';
-import PinMapping from './PinMapping';
-import ResetSettings from './ResetSettings';
-import Rotary from './Addons/Rotary';
 import SettingsPage from './SettingsPage';
+import ResetSettings from './ResetSettings';
+import Components from './Components';
+import PinMapping from './PinMapping';
+import PeripheralMapping from './PeripheralMapping';
+import LedConfig from './LedConfig';
+import CustomTheme from './CustomTheme';
+import BackupPage from './BackupPage';
+import DisplayConfig from './DisplayConfig';
+import AddonsConfig from './AddonsConfig';
+import CaptureButton from './CaptureButton';
 import WiiAddon from './Addons/WiiAddon';
+import Rotary from './Addons/Rotary';
+import InputMacroAddon from './InputMacroAddon';
+import LayoutConfig from './LayoutConfig';
 
 export default {
-	AddonsConfig,
-	BackupPage,
-	CaptureButton,
 	Common,
-	Components,
-	CustomTheme,
-	DisplayConfig,
 	HomePage,
-	InputMacroAddon,
-	LedConfig,
 	Navigation,
-	PeripheralMapping,
-	PinMapping,
-	ResetSettings,
-	Rotary,
 	SettingsPage,
+	ResetSettings,
+	Components,
+	PinMapping,
+	PeripheralMapping,
+	LedConfig,
+	CustomTheme,
+	BackupPage,
+	DisplayConfig,
+	AddonsConfig,
+	CaptureButton,
 	WiiAddon,
+	Rotary,
+	InputMacroAddon,
+	LayoutConfig,
 };
