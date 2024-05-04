@@ -211,7 +211,6 @@ export default function PinMapping() {
 	useEffect(() => {
 		fetchPins();
 		fetchProfiles();
-		console.log('WTF');
 	}, []);
 
 	const onBaseChange = useCallback(
