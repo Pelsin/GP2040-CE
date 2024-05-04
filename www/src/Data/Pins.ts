@@ -45,14 +45,5 @@ export const BUTTON_ACTIONS = {
 	CUSTOM_BUTTON_COMBO: 40,
 } as const;
 
-// Hide from select options / Disable select if returned from board
-export const NON_SELECTABLE_BUTTON_ACTIONS = [
-	BUTTON_ACTIONS.RESERVED,
-	BUTTON_ACTIONS.ASSIGNED_TO_ADDON,
-	BUTTON_ACTIONS.BUTTON_PRESS_TURBO,
-	BUTTON_ACTIONS.BUTTON_PRESS_MACRO,
-	BUTTON_ACTIONS.CUSTOM_BUTTON_COMBO,
-] as const;
-
 type PinActionKeys = keyof typeof BUTTON_ACTIONS;
 export type PinActionValues = (typeof BUTTON_ACTIONS)[PinActionKeys];
