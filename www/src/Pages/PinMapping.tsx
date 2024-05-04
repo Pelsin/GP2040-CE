@@ -6,7 +6,7 @@ import invert from 'lodash/invert';
 import omit from 'lodash/omit';
 
 import { AppContext } from '../Contexts/AppContext';
-import usePinStore, { MaskPayload } from '../Store/usePinStore';
+import usePinStore from '../Store/usePinStore';
 import useProfilesStore from '../Store/useProfilesStore';
 
 import Section from '../Components/Section';
@@ -16,7 +16,7 @@ import CaptureButton from '../Components/CaptureButton';
 import { BUTTON_MASKS, DPAD_MASKS, getButtonLabels } from '../Data/Buttons';
 import { BUTTON_ACTIONS, PinActionValues } from '../Data/Pins';
 import './PinMapping.scss';
-import { ActionMeta, MultiValue, SingleValue } from 'react-select';
+import { MultiValue, SingleValue } from 'react-select';
 
 type OptionType = {
 	label: string;
@@ -26,19 +26,10 @@ type OptionType = {
 	customDpadMask: number;
 };
 
-type PinSectionType = {
+type ProfilePinSectionType = {
 	title: string;
-	pins: { [key: string]: MaskPayload | PinActionValues };
-	onChange: (
-		pin: string,
-	) =>
-		| ((
-				newValue: MultiValue<OptionType> | SingleValue<OptionType>,
-				actionMeta: ActionMeta<OptionType>,
-		  ) => void)
-		| undefined;
-	onSave: () => Promise<object>;
-	isMulti?: boolean;
+	profilePins: { [key: string]: PinActionValues };
+	profileIndex: number;
 };
 
 const disabledOptions = [
@@ -92,7 +83,7 @@ const groupedOptions = [
 	},
 ];
 
-const getMultiValue = (pinData: MaskPayload) => {
+const getMultiValue = (pinData) => {
 	if (pinData.action === BUTTON_ACTIONS.NONE) return;
 	if (isDisabled(pinData.action)) {
 		const actionKey = invert(BUTTON_ACTIONS)[pinData.action];
@@ -110,18 +101,29 @@ const getMultiValue = (pinData: MaskPayload) => {
 		: options.filter((option) => option.value === pinData.action);
 };
 
-const getSingleValue = (pinData: PinActionValues) => {
+const getSingleValue = (pinData) => {
 	const actionKey = invert(BUTTON_ACTIONS)[pinData];
 	return { label: actionKey, value: pinData };
 };
 
-const PinSection = ({
-	title,
-	pins,
-	onChange,
-	onSave,
-	isMulti = true,
-}: PinSectionType) => {
+const PinMappingWarning = () => {
+	const { t } = useTranslation('');
+	return (
+		<div className="alert alert-warning">
+			<Trans ns="PinMapping" i18nKey="alert-text">
+				Mapping buttons to pins that aren&apos;t connected or available can
+				leave the device in non-functional state. To clear the invalid
+				configuration go to the{' '}
+				<NavLink to="/reset-settings">Reset Settings</NavLink> page.
+			</Trans>
+			<br />
+			<br />
+			{t(`PinMapping:profile-pins-warning`)}
+		</div>
+	);
+};
+const BasePinSection = () => {
+	const { pins, savePins, setPin } = usePinStore();
 	const { buttonLabels, updateUsedPins } = useContext(AppContext);
 	const { t } = useTranslation('');
 	const [saveMessage, setSaveMessage] = useState('');
@@ -130,90 +132,7 @@ const PinSection = ({
 	const CURRENT_BUTTONS = getButtonLabels(buttonLabelType, swapTpShareLabels);
 	const buttonNames = omit(CURRENT_BUTTONS, ['label', 'value']);
 
-	const getOptionLabel = useCallback(
-		(option: OptionType) => {
-			const labelKey = option.label?.split('BUTTON_PRESS_')?.pop();
-			// Need to fallback as some button actions are not part of button names
-			return (
-				(labelKey && buttonNames[labelKey]) ||
-				t(`PinMapping:actions.${option.label}`)
-			);
-		},
-		[buttonNames],
-	);
-
-	const handleSubmit = useCallback(async (e) => {
-		e.preventDefault();
-		e.stopPropagation();
-		try {
-			await onSave();
-			updateUsedPins();
-			setSaveMessage(t('Common:saved-success-message'));
-		} catch (error) {
-			setSaveMessage(t('Common:saved-error-message'));
-		}
-	}, []);
-
-	return (
-		<>
-			<div className="alert alert-warning">
-				<Trans ns="PinMapping" i18nKey="alert-text">
-					Mapping buttons to pins that aren&apos;t connected or available can
-					leave the device in non-functional state. To clear the invalid
-					configuration go to the{' '}
-					<NavLink to="/reset-settings">Reset Settings</NavLink> page.
-				</Trans>
-				<br />
-				<br />
-				{t(`PinMapping:profile-pins-warning`)}
-			</div>
-			<Section title={title}>
-				<Form onSubmit={handleSubmit}>
-					<div className="pin-grid gap-3">
-						{Object.entries(pins).map(([pin, pinData], index) => (
-							<div
-								key={`select-${index}`}
-								className="d-flex col align-items-center"
-							>
-								<div className="d-flex flex-shrink-0" style={{ width: '4rem' }}>
-									<label>{pin.toUpperCase()}</label>
-								</div>
-								<CustomSelect
-									isClearable
-									isMulti={isMulti && !isDisabled(pinData?.action)}
-									options={groupedOptions}
-									isDisabled={isDisabled(isMulti ? pinData?.action : pinData)}
-									getOptionLabel={getOptionLabel}
-									onChange={onChange(pin)}
-									value={
-										isMulti ? getMultiValue(pinData) : getSingleValue(pinData)
-									}
-								/>
-							</div>
-						))}
-					</div>
-					<Button type="submit" className="my-4">
-						{t('Common:button-save-label')}
-					</Button>
-					{saveMessage && <Alert variant="info">{saveMessage}</Alert>}
-				</Form>
-			</Section>
-		</>
-	);
-};
-export default function PinMapping() {
-	const { fetchPins, pins, savePins, setPin } = usePinStore();
-	const { fetchProfiles, profiles, saveProfiles, setProfileAction } =
-		useProfilesStore();
-	const [pressedPin, setPressedPin] = useState<number | null>(null);
-	const { t } = useTranslation('');
-
-	useEffect(() => {
-		fetchPins();
-		fetchProfiles();
-	}, []);
-
-	const onBaseChange = useCallback(
+	const onChange = useCallback(
 		(pin: string) =>
 			(selected: MultiValue<OptionType> | SingleValue<OptionType>) => {
 				// Handle clearing
@@ -266,9 +185,101 @@ export default function PinMapping() {
 		[],
 	);
 
-	const onProfileChange = useCallback(
+	const getOptionLabel = useCallback(
+		(option: OptionType) => {
+			const labelKey = option.label?.split('BUTTON_PRESS_')?.pop();
+			// Need to fallback as some button actions are not part of button names
+			return (
+				(labelKey && buttonNames[labelKey]) ||
+				t(`PinMapping:actions.${option.label}`)
+			);
+		},
+		[buttonNames],
+	);
+
+	const handleSubmit = useCallback(async (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		try {
+			await savePins();
+			updateUsedPins();
+			setSaveMessage(t('Common:saved-success-message'));
+		} catch (error) {
+			setSaveMessage(t('Common:saved-error-message'));
+		}
+	}, []);
+
+	return (
+		<>
+			<PinMappingWarning />
+			<Section title={`Base(Profile 1) - Pin Mapping`}>
+				<Form onSubmit={handleSubmit}>
+					<div className="pin-grid gap-3">
+						{Object.entries(pins).map(([pin, pinData], index) => (
+							<div
+								key={`select-${index}`}
+								className="d-flex col align-items-center"
+							>
+								<div className="d-flex flex-shrink-0" style={{ width: '4rem' }}>
+									<label>{pin.toUpperCase()}</label>
+								</div>
+								<CustomSelect
+									isClearable
+									isMulti={!isDisabled(pinData.action)}
+									options={groupedOptions}
+									isDisabled={isDisabled(pinData.action)}
+									getOptionLabel={getOptionLabel}
+									onChange={onChange(pin)}
+									value={getMultiValue(pinData)}
+								/>
+							</div>
+						))}
+					</div>
+					<CaptureButton
+						labels={Object.values(buttonNames)}
+						onChange={(label, pin) =>
+							setPin(
+								// Convert getHeldPins format to setPinMappings format
+								pin < 10 ? `pin0${pin}` : `pin${pin}`,
+								{
+									// Maps current mode buttons to actions
+									action:
+										BUTTON_ACTIONS[
+											`BUTTON_PRESS_${invert(buttonNames)[label].toUpperCase()}`
+										],
+									customButtonMask: 0,
+									customDpadMask: 0,
+								},
+							)
+						}
+					/>
+					<Button type="submit" className="m-4">
+						{t('Common:button-save-label')}
+					</Button>
+					{saveMessage && <Alert variant="info">{saveMessage}</Alert>}
+				</Form>
+			</Section>
+		</>
+	);
+};
+
+const ProfilePinSection = ({
+	title,
+	profilePins,
+	profileIndex,
+}: ProfilePinSectionType) => {
+	const { saveProfiles, setProfileAction } = useProfilesStore();
+	const { buttonLabels, updateUsedPins } = useContext(AppContext);
+	const { t } = useTranslation('');
+	const [saveMessage, setSaveMessage] = useState('');
+
+	const { buttonLabelType, swapTpShareLabels } = buttonLabels;
+	const CURRENT_BUTTONS = getButtonLabels(buttonLabelType, swapTpShareLabels);
+	const buttonNames = omit(CURRENT_BUTTONS, ['label', 'value']);
+
+	const onChange = useCallback(
 		(pin: string, profileIndex: number) =>
-			(selected: MultiValue<OptionType> | SingleValue<OptionType>) => {
+			(selected: SingleValue<OptionType>) => {
 				setProfileAction(
 					profileIndex,
 					pin,
@@ -277,6 +288,90 @@ export default function PinMapping() {
 			},
 		[],
 	);
+
+	const getOptionLabel = useCallback(
+		(option: OptionType) => {
+			const labelKey = option.label?.split('BUTTON_PRESS_')?.pop();
+			// Need to fallback as some button actions are not part of button names
+			return (
+				(labelKey && buttonNames[labelKey]) ||
+				t(`PinMapping:actions.${option.label}`)
+			);
+		},
+		[buttonNames],
+	);
+
+	const handleSubmit = useCallback(async (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		try {
+			await saveProfiles();
+			updateUsedPins();
+			setSaveMessage(t('Common:saved-success-message'));
+		} catch (error) {
+			setSaveMessage(t('Common:saved-error-message'));
+		}
+	}, []);
+
+	return (
+		<>
+			<PinMappingWarning />
+			<Section title={title}>
+				<Form onSubmit={handleSubmit}>
+					<div className="pin-grid gap-3">
+						{Object.entries(profilePins).map(([pin, pinData], index) => (
+							<div
+								key={`select-${index}`}
+								className="d-flex col align-items-center"
+							>
+								<div className="d-flex flex-shrink-0" style={{ width: '4rem' }}>
+									<label>{pin.toUpperCase()}</label>
+								</div>
+								<CustomSelect
+									isClearable
+									options={groupedOptions}
+									isDisabled={isDisabled(pinData)}
+									getOptionLabel={getOptionLabel}
+									onChange={onChange(pin, profileIndex)}
+									value={getSingleValue(pinData)}
+								/>
+							</div>
+						))}
+					</div>
+					<CaptureButton
+						labels={Object.values(buttonNames)}
+						onChange={(label, pin) =>
+							setProfileAction(
+								profileIndex,
+								// Convert getHeldPins format to setPinMappings format
+								pin < 10 ? `pin0${pin}` : `pin${pin}`,
+								// Maps current mode buttons to actions
+								BUTTON_ACTIONS[
+									`BUTTON_PRESS_${invert(buttonNames)[label].toUpperCase()}`
+								],
+							)
+						}
+					/>
+					<Button type="submit" className="m-4">
+						{t('Common:button-save-label')}
+					</Button>
+					{saveMessage && <Alert variant="info">{saveMessage}</Alert>}
+				</Form>
+			</Section>
+		</>
+	);
+};
+
+export default function PinMapping() {
+	const { fetchPins } = usePinStore();
+	const { fetchProfiles, profiles } = useProfilesStore();
+	const [pressedPin, setPressedPin] = useState<number | null>(null);
+	const { t } = useTranslation('');
+
+	useEffect(() => {
+		fetchPins();
+		fetchProfiles();
+	}, []);
 
 	return (
 		<Tab.Container defaultActiveKey="profile-1">
@@ -314,12 +409,7 @@ export default function PinMapping() {
 				<Col sm={10}>
 					<Tab.Content>
 						<Tab.Pane eventKey="profile-1">
-							<PinSection
-								title={`Base(Profile 1) - Pin Mapping`}
-								pins={pins}
-								onChange={onBaseChange}
-								onSave={savePins}
-							/>
+							<BasePinSection />
 						</Tab.Pane>
 
 						{profiles.map((profilePins, profileIndex) => (
@@ -327,12 +417,10 @@ export default function PinMapping() {
 								key={`profile-${profileIndex + 2}`}
 								eventKey={`profile-${profileIndex + 2}`}
 							>
-								<PinSection
+								<ProfilePinSection
 									title={`Profile ${profileIndex + 2} - Pin Mapping`}
-									pins={profilePins}
-									onChange={(pin) => onProfileChange(pin, profileIndex)}
-									onSave={saveProfiles}
-									isMulti={false}
+									profilePins={profilePins}
+									profileIndex={profileIndex}
 								/>
 							</Tab.Pane>
 						))}
