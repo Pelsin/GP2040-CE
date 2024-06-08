@@ -45,5 +45,13 @@ export const BUTTON_ACTIONS = {
 	CUSTOM_BUTTON_COMBO: 40,
 } as const;
 
+export const PIN_DIRECTIONS = {
+	DIRECTION_INPUT: 0,
+	DIRECTION_OUTPUT: 1,
+} as const;
+
 type PinActionKeys = keyof typeof BUTTON_ACTIONS;
 export type PinActionValues = (typeof BUTTON_ACTIONS)[PinActionKeys];
+
+type PinDirectionKeys = keyof typeof PIN_DIRECTIONS;
+export type PinDirectionValues = (typeof PIN_DIRECTIONS)[PinDirectionKeys];

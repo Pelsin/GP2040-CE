@@ -638,6 +638,21 @@ async function getUsedPins(setLoading) {
 	}
 }
 
+async function getExpansionPins() {
+	try {
+		const response = await Http.get(`${baseUrl}/api/getExpansionPins`);
+		return response.data;
+	} catch (error) {
+		console.error(error);
+	}
+}
+
+async function setExpansionPins(mappings) {
+	console.dir(mappings);
+
+	return Http.post(`${baseUrl}/api/setExpansionPins`, mappings);
+}
+
 async function getHeldPins(abortSignal) {
 	try {
 		const response = await Http.get(`${baseUrl}/api/getHeldPins`, {
@@ -645,7 +660,7 @@ async function getHeldPins(abortSignal) {
 		});
 		return response.data;
 	} catch (error) {
-		if (error?.code === 'ERR_CANCELED') return { canceled: true };
+		if (error?.name === 'AbortError') return { canceled: true };
 		else console.error(error);
 	}
 }
@@ -695,6 +710,8 @@ export default {
 	setWiiControls,
 	getPeripheralOptions,
 	setPeripheralOptions,
+	getExpansionPins,
+	setExpansionPins,
 	getButtonLayouts,
 	getButtonLayoutDefs,
 	getSplashImage,

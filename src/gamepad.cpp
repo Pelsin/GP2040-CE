@@ -103,7 +103,6 @@ void Gamepad::setup()
 		}
 	}
 
-	lastAction = HOTKEY_NONE;
 }
 
 /**
@@ -456,6 +455,13 @@ void Gamepad::processHotkeyAction(GamepadHotkey action) {
 		case HOTKEY_LOAD_PROFILE_4:
 			if (action != lastAction) {
 				Storage::getInstance().setProfile(4);
+				userRequestedReinit = true;
+				reqSave = true;
+			}
+			break;
+		case HOTKEY_NEXT_PROFILE:
+			if (action != lastAction) {
+				Storage::getInstance().nextProfile();
 				userRequestedReinit = true;
 				reqSave = true;
 			}
