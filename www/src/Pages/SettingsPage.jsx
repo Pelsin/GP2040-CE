@@ -285,6 +285,14 @@ const HOTKEY_ACTIONS = [
 	{ labelKey: 'hotkey-actions.dpad-down', value: 39 },
 	{ labelKey: 'hotkey-actions.dpad-left', value: 40 },
 	{ labelKey: 'hotkey-actions.dpad-right', value: 41 },
+	{ labelKey: 'hotkey-actions.left-analog-up', value: 44 },
+	{ labelKey: 'hotkey-actions.left-analog-down', value: 45 },
+	{ labelKey: 'hotkey-actions.left-analog-left', value: 46 },
+	{ labelKey: 'hotkey-actions.left-analog-right', value: 47 },
+	{ labelKey: 'hotkey-actions.right-analog-up', value: 48 },
+	{ labelKey: 'hotkey-actions.right-analog-down', value: 49 },
+	{ labelKey: 'hotkey-actions.right-analog-left', value: 50 },
+	{ labelKey: 'hotkey-actions.right-analog-right', value: 51 },
 ];
 
 const FORCED_SETUP_MODES = [

@@ -279,7 +279,7 @@ void Gamepad::process()
 			state.dpad &= ~dpadOnlyMask;
 			state.dpad = dpadOnlyMask;
 			break;
-	
+
 		case DpadMode::DPAD_MODE_RIGHT_ANALOG:
 			if (!hasLeftAnalogStick) {
 				state.lx = joystickMid;
@@ -290,7 +290,7 @@ void Gamepad::process()
 			state.dpad &= ~dpadOnlyMask;
 			state.dpad = dpadOnlyMask;
 			break;
-	
+
 		default:
 			//if (!hasLeftAnalogStick) {
 			//	state.lx = joystickMid;
@@ -475,69 +475,6 @@ void Gamepad::processHotkeyAction(GamepadHotkey action) {
 				reqSave = true;
 			}
 			break;
-		case HOTKEY_HOME_BUTTON:
-			state.buttons |= GAMEPAD_MASK_A1;
-			break;
-		case HOTKEY_L3_BUTTON:
-			state.buttons |= GAMEPAD_MASK_L3;
-			break;
-		case HOTKEY_R3_BUTTON:
-			state.buttons |= GAMEPAD_MASK_R3;
-			break;
-		case HOTKEY_B1_BUTTON:
-			state.buttons |= GAMEPAD_MASK_B1;
-			break;
-		case HOTKEY_B2_BUTTON:
-			state.buttons |= GAMEPAD_MASK_B2;
-			break;
-		case HOTKEY_B3_BUTTON:
-			state.buttons |= GAMEPAD_MASK_B3;
-			break;
-		case HOTKEY_B4_BUTTON:
-			state.buttons |= GAMEPAD_MASK_B4;
-			break;
-		case HOTKEY_L1_BUTTON:
-			state.buttons |= GAMEPAD_MASK_L1;
-			break;
-		case HOTKEY_R1_BUTTON:
-			state.buttons |= GAMEPAD_MASK_R1;
-			break;
-		case HOTKEY_L2_BUTTON:
-			state.buttons |= GAMEPAD_MASK_L2;
-			break;
-		case HOTKEY_R2_BUTTON:
-			state.buttons |= GAMEPAD_MASK_R2;
-			break;
-		case HOTKEY_S1_BUTTON:
-			state.buttons |= GAMEPAD_MASK_S1;
-			break;
-		case HOTKEY_S2_BUTTON:
-			state.buttons |= GAMEPAD_MASK_S2;
-			break;
-		case HOTKEY_A1_BUTTON:
-			state.buttons |= GAMEPAD_MASK_A1;
-			break;
-		case HOTKEY_A2_BUTTON:
-			state.buttons |= GAMEPAD_MASK_A2;
-			break;
-		case HOTKEY_A3_BUTTON:
-			state.buttons |= GAMEPAD_MASK_A3;
-			break;
-		case HOTKEY_A4_BUTTON:
-			state.buttons |= GAMEPAD_MASK_A4;
-			break;
-		case HOTKEY_DPAD_UP:
-			state.dpad |= GAMEPAD_MASK_UP;
-			break;
-		case HOTKEY_DPAD_DOWN:
-			state.dpad |= GAMEPAD_MASK_DOWN;
-			break;
-		case HOTKEY_DPAD_LEFT:
-			state.dpad |= GAMEPAD_MASK_LEFT;
-			break;
-		case HOTKEY_DPAD_RIGHT:
-			state.dpad |= GAMEPAD_MASK_RIGHT;
-			break;
 		case HOTKEY_SOCD_UP_PRIORITY:
 			if (action != lastAction) {
 				options.socdMode = SOCD_MODE_UP_PRIORITY;
@@ -650,6 +587,94 @@ void Gamepad::processHotkeyAction(GamepadHotkey action) {
 				userRequestedReinit = true;
 				reqSave = true;
 			}
+			break;
+
+		case HOTKEY_HOME_BUTTON:
+			state.buttons |= GAMEPAD_MASK_A1;
+			break;
+		case HOTKEY_L3_BUTTON:
+			state.buttons |= GAMEPAD_MASK_L3;
+			break;
+		case HOTKEY_R3_BUTTON:
+			state.buttons |= GAMEPAD_MASK_R3;
+			break;
+		case HOTKEY_B1_BUTTON:
+			state.buttons |= GAMEPAD_MASK_B1;
+			break;
+		case HOTKEY_B2_BUTTON:
+			state.buttons |= GAMEPAD_MASK_B2;
+			break;
+		case HOTKEY_B3_BUTTON:
+			state.buttons |= GAMEPAD_MASK_B3;
+			break;
+		case HOTKEY_B4_BUTTON:
+			state.buttons |= GAMEPAD_MASK_B4;
+			break;
+		case HOTKEY_L1_BUTTON:
+			state.buttons |= GAMEPAD_MASK_L1;
+			break;
+		case HOTKEY_R1_BUTTON:
+			state.buttons |= GAMEPAD_MASK_R1;
+			break;
+		case HOTKEY_L2_BUTTON:
+			state.buttons |= GAMEPAD_MASK_L2;
+			break;
+		case HOTKEY_R2_BUTTON:
+			state.buttons |= GAMEPAD_MASK_R2;
+			break;
+		case HOTKEY_S1_BUTTON:
+			state.buttons |= GAMEPAD_MASK_S1;
+			break;
+		case HOTKEY_S2_BUTTON:
+			state.buttons |= GAMEPAD_MASK_S2;
+			break;
+		case HOTKEY_A1_BUTTON:
+			state.buttons |= GAMEPAD_MASK_A1;
+			break;
+		case HOTKEY_A2_BUTTON:
+			state.buttons |= GAMEPAD_MASK_A2;
+			break;
+		case HOTKEY_A3_BUTTON:
+			state.buttons |= GAMEPAD_MASK_A3;
+			break;
+		case HOTKEY_A4_BUTTON:
+			state.buttons |= GAMEPAD_MASK_A4;
+			break;
+		case HOTKEY_DPAD_UP:
+			state.dpad |= GAMEPAD_MASK_UP;
+			break;
+		case HOTKEY_DPAD_DOWN:
+			state.dpad |= GAMEPAD_MASK_DOWN;
+			break;
+		case HOTKEY_DPAD_LEFT:
+			state.dpad |= GAMEPAD_MASK_LEFT;
+			break;
+		case HOTKEY_DPAD_RIGHT:
+			state.dpad |= GAMEPAD_MASK_RIGHT;
+			break;
+		case HOTKEY_LEFT_ANALOG_UP:
+			state.ly = GAMEPAD_JOYSTICK_MIN;
+			break;
+		case HOTKEY_LEFT_ANALOG_DOWN:
+			state.ly = GAMEPAD_JOYSTICK_MAX;
+			break;
+		case HOTKEY_LEFT_ANALOG_LEFT:
+			state.lx = GAMEPAD_JOYSTICK_MIN;
+			break;
+		case HOTKEY_LEFT_ANALOG_RIGHT:
+			state.lx = GAMEPAD_JOYSTICK_MAX;
+			break;
+		case HOTKEY_RIGHT_ANALOG_UP:
+			state.ry = GAMEPAD_JOYSTICK_MIN;
+			break;
+		case HOTKEY_RIGHT_ANALOG_DOWN:
+			state.ry = GAMEPAD_JOYSTICK_MAX;
+			break;
+		case HOTKEY_RIGHT_ANALOG_LEFT:
+			state.rx = GAMEPAD_JOYSTICK_MIN;
+			break;
+		case HOTKEY_RIGHT_ANALOG_RIGHT:
+			state.rx = GAMEPAD_JOYSTICK_MAX;
 			break;
 		default: // Unknown action
 			return;

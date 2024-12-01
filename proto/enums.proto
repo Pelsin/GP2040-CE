@@ -319,6 +319,14 @@ enum GamepadHotkey
     HOTKEY_DPAD_RIGHT            = 41;
     HOTKEY_PREVIOUS_PROFILE      = 42;
     HOTKEY_SAVE_CONFIG           = 43;
+    HOTKEY_LEFT_ANALOG_UP        = 44;
+    HOTKEY_LEFT_ANALOG_DOWN      = 45;
+    HOTKEY_LEFT_ANALOG_LEFT      = 46;
+    HOTKEY_LEFT_ANALOG_RIGHT     = 47;
+    HOTKEY_RIGHT_ANALOG_UP       = 48;
+    HOTKEY_RIGHT_ANALOG_DOWN     = 49;
+    HOTKEY_RIGHT_ANALOG_LEFT     = 50;
+    HOTKEY_RIGHT_ANALOG_RIGHT    = 51;
 }
 
 // This has to be kept in sync with LEDFormat in NeoPico.hpp
