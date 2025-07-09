@@ -75,7 +75,7 @@ jobs:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         GP2040_BOARDCONFIG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.board_config != '' && fromJSON(format('["{0}"]', github.event.inputs.board_config)) || fromJSON('["ARCController", "Blank", "Pico", "PicoW", "Pico2", "BentoBox", "DuelPadZen", "FlatboxRev4", "FlatboxRev5", "FlatboxRev5RGB", "FlatboxRev5USBPassthrough", "FlatboxRev5Southpaw", "Granola", "KB2040", "KeyboardConverter", "Haute42COSMOX", "Haute42COSMOXMLite", "Haute42COSMOXMUltra", "Haute42COSMOXXAnalog", "Liatris", "MavercadeRev1", "MavercadeRev2", "MiSTercadeV2", "OpenCore0", "OpenCore0MIXUP", "OpenCore0WASD", "OSUMGP-RP2040", "PicoAnn", "PicoFightingBoard", "PXPGamepad", "ReflexCtrlGenesis6", "ReflexCtrlNES", "ReflexCtrlSaturn", "ReflexCtrlSNES", "ReflexCtrlVB", "ReflexEncodeV1.2", "ReflexEncodeV2.0", "RP2040AdvancedBreakoutBoard", "RP2040AdvancedBreakoutBoardUSBPassthrough", "RP2040MiniBreakoutBoard", "RP2040MiniBreakoutBoardUSBPassthrough", "SeeedXIAORP2040", "SparkFunProMicro", "SparkFunProMicroRP2350", "WaveshareZero", "Stress", "SGFDevices", "ZeroRhythm"]') }}
@@ -88,6 +88,13 @@ jobs:
       - name: Verify cmake
         run: cmake --version
 
+      # Setup ccache for faster compilation
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ runner.os }}-${{ matrix.GP2040_BOARDCONFIG }}
+          max-size: 2G
+
       #Global Setup
       - name: Checkout GP2040-CE
         uses: actions/checkout@v4.1.1
@@ -98,6 +105,27 @@ jobs:
       - name: Setup SDK pipeline
         uses: Fortinbra/RaspberryPiPicoBuild@v7
 
+      # Cache Pico SDK to speed up subsequent builds
+      - name: Cache Pico SDK
+        uses: actions/cache@v4
+        with:
+          path: ${{github.workspace}}/pico-sdk
+          key: pico-sdk-${{ hashFiles('**/pico_sdk_import.cmake') }}
+          restore-keys: |
+            pico-sdk-
+
+      # Cache CMake build directory
+      - name: Cache CMake build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{github.workspace}}/build
+            !${{github.workspace}}/build/GP2040-CE_*
+          key: cmake-build-${{ matrix.GP2040_BOARDCONFIG }}-${{ hashFiles('**/CMakeLists.txt', '**/config.proto', '**/enums.proto') }}
+          restore-keys: |
+            cmake-build-${{ matrix.GP2040_BOARDCONFIG }}-
+            cmake-build-
+
       - name: Download a Build Artifact
         uses: actions/download-artifact@v4.1.2
         with:
@@ -106,27 +134,30 @@ jobs:
 
       - name: Get core count
         id: core_count
-        run: cat /proc/cpuinfo  | grep processor | wc -l
+        run: echo "count=$(nproc)" >> $GITHUB_OUTPUT
         #End Global Setup
 
       - name: Pico Build Configure CMake
         shell: bash
         if: ${{ matrix.GP2040_BOARDCONFIG != 'PicoW' && matrix.GP2040_BOARDCONFIG != 'Pico2' && matrix.GP2040_BOARDCONFIG != 'SparkFunProMicroRP2350' }}
-        run: PICO_SDK_PATH=${{github.workspace}}/pico-sdk GP2040_BOARDCONFIG=${{ matrix.GP2040_BOARDCONFIG }} SKIP_WEBBUILD=TRUE cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        run: PICO_SDK_PATH=${{github.workspace}}/pico-sdk GP2040_BOARDCONFIG=${{ matrix.GP2040_BOARDCONFIG }} SKIP_WEBBUILD=TRUE cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: PicoW Build Configure CMake
         shell: bash
         if: ${{ matrix.GP2040_BOARDCONFIG == 'PicoW'}}
-        run: PICO_SDK_PATH=${{github.workspace}}/pico-sdk GP2040_BOARDCONFIG=${{ matrix.GP2040_BOARDCONFIG }} SKIP_WEBBUILD=TRUE cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DPICO_BOARD=pico_w
+        run: PICO_SDK_PATH=${{github.workspace}}/pico-sdk GP2040_BOARDCONFIG=${{ matrix.GP2040_BOARDCONFIG }} SKIP_WEBBUILD=TRUE cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DPICO_BOARD=pico_w -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Pico2 Build Configure CMake
         shell: bash
         if: ${{ matrix.GP2040_BOARDCONFIG == 'Pico2' || matrix.GP2040_BOARDCONFIG == 'SparkFunProMicroRP2350' }}
-        run: PICO_SDK_PATH=${{github.workspace}}/pico-sdk GP2040_BOARDCONFIG=${{ matrix.GP2040_BOARDCONFIG }} SKIP_WEBBUILD=TRUE cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DPICO_BOARD=pico2 -DPICO_PLATFORM=rp2350-arm-s
+        run: PICO_SDK_PATH=${{github.workspace}}/pico-sdk GP2040_BOARDCONFIG=${{ matrix.GP2040_BOARDCONFIG }} SKIP_WEBBUILD=TRUE cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DPICO_BOARD=pico2 -DPICO_PLATFORM=rp2350-arm-s -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Pico Build
         shell: bash
-        run: GP2040_BOARDCONFIG=${{ matrix.GP2040_BOARDCONFIG }} cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --parallel ${{steps.core_count.outputs.output}}
+        run: GP2040_BOARDCONFIG=${{ matrix.GP2040_BOARDCONFIG }} cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --parallel ${{steps.core_count.outputs.count}}
+
+      - name: Show ccache stats
+        run: ccache -s
 
       - name: Upload Pico Artifact
         uses: actions/upload-artifact@v4.3.1
