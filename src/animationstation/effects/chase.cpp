@@ -9,9 +9,6 @@ Chase::Chase(PixelMatrix &matrix) : Animation(matrix) {
 }
 
 bool Chase::Animate(RGB (&frame)[100]) {
-  if (!time_reached(this->nextRunTime)) {
-    return false;
-  }
 
   UpdateTime();
   UpdatePresses(frame);
@@ -33,6 +30,11 @@ bool Chase::Animate(RGB (&frame)[100]) {
           frame[pos] = BlendColor(hitColor[pixel.index], ColorBlack, times[pixel.index]);
       }
     }
+  }
+
+  // Frame updated but don't advance animation if timer has not elapsed
+  if (!time_reached(this->nextRunTime)) {
+    return false; 
   }
 
   currentPixel++;

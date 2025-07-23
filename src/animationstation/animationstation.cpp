@@ -137,12 +137,11 @@ void AnimationStation::Animate() {
     return;
   }
 
-  // Only copy our frame to linkage frame if the animation effect updated our frame[]
-  if ( baseAnimation->Animate(this->frame) == true ) {
-    // Copy frame to linkage frame before button press
-    for(int i = 0; i < 100; i++){
-      linkageFrame[i] = this->frame[i];
-    }
+  // Advance the base animation and copy the frame to linkage frame
+  bool animationAdvanced = baseAnimation->Animate(this->frame);
+
+  for(int i = 0; i < 100; i++){
+    linkageFrame[i] = this->frame[i];
   }
 
   buttonAnimation->Animate(this->frame);
