@@ -117,9 +117,17 @@ struct GamepadAuxTurbo
     uint8_t activity = 0;
 };
 
+struct GamepadAuxMouse
+{
+    GamepadAux3DRelativeSensor position;
+    bool leftButton = false;
+    bool rightButton = false;
+    bool middleButton = false;
+};
+
 struct GamepadAuxSensors
 {
-    GamepadAux3DRelativeSensor mouse;
+    GamepadAuxMouse mouse;
 
     GamepadAux3DSensor touchpad[GAMEPAD_AUX_MAX_TOUCHPADS];
     GamepadAux3DSensor gyroscope;

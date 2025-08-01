@@ -686,6 +686,7 @@ std::string setGamepadOptions()
     readDoc(gamepadOptions.usbOverrideID, doc, "usbOverrideID");
     readDoc(gamepadOptions.usbVendorID, doc, "usbVendorID");
     readDoc(gamepadOptions.usbProductID, doc, "usbProductID");
+    readDoc(gamepadOptions.keyboardModeMousePassthrough, doc, "keyboardModeMousePassthrough");
 
 
     HotkeyOptions& hotkeyOptions = Storage::getInstance().getHotkeyOptions();
@@ -753,6 +754,7 @@ std::string getGamepadOptions()
     char usbProductStr[5];
     snprintf(usbProductStr, 5, "%04X", gamepadOptions.usbProductID);
     writeDoc(doc, "usbProductID", usbProductStr);
+    writeDoc(doc, "keyboardModeMousePassthrough", gamepadOptions.keyboardModeMousePassthrough ? 1 : 0);
     writeDoc(doc, "fnButtonPin", -1);
     GpioMappingInfo* gpioMappings = Storage::getInstance().getGpioMappings().pins;
     for (unsigned int pin = 0; pin < NUM_BANK0_GPIOS; pin++) {

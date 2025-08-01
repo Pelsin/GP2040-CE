@@ -156,6 +156,9 @@ export default {
 	'keyboard-mapping-header-text': 'Keyboard Mapping',
 	'keyboard-mapping-sub-header-text':
 		'Use the form below to reconfigure your button-to-key mapping.',
+	'keyboard-mouse-passthrough-label': 'Enable Mouse Passthrough',
+	'keyboard-mouse-passthrough-description':
+		'When enabled, connected mice will act as actual mice through a composite keyboard+mouse USB device.',
 	'usb-override': {
 		'advanced-override': '⚠️ Advanced USB Override',
 		'invalid-warning-danger':

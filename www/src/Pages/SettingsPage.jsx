@@ -752,6 +752,23 @@ export default function SettingsPage() {
 					handleKeyChange={handleKeyChange}
 					getKeyMappingForButton={getKeyMappingForButton}
 				/>
+				<Row className="mb-3">
+					<Col sm={10}>
+						<Form.Check
+							label={t('SettingsPage:keyboard-mouse-passthrough-label')}
+							type="switch"
+							name="keyboardModeMousePassthrough"
+							isInvalid={false}
+							checked={Boolean(values.keyboardModeMousePassthrough)}
+							onChange={(e) => {
+								setFieldValue('keyboardModeMousePassthrough', e.target.checked ? 1 : 0);
+							}}
+						/>
+						<Form.Text className="text-muted">
+							{t('SettingsPage:keyboard-mouse-passthrough-description')}
+						</Form.Text>
+					</Col>
+				</Row>
 			</div>
 		);
 	};

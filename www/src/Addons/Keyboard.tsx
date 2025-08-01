@@ -86,15 +86,16 @@ const Keyboard = ({
 	};
 
 	return (
-		<Section title={
-			<a
-				href="https://gp2040-ce.info/add-ons/keyboard-host"
-				target="_blank"
-				className="text-reset text-decoration-none"
-			>
-				{t('AddonsConfig:keyboard-host-header-text')}
-			</a>
-		}
+		<Section
+			title={
+				<a
+					href="https://gp2040-ce.info/add-ons/keyboard-host"
+					target="_blank"
+					className="text-reset text-decoration-none"
+				>
+					{t('AddonsConfig:keyboard-host-header-text')}
+				</a>
+			}
 		>
 			<div
 				id="KeyboardHostAddonOptions"
@@ -103,7 +104,10 @@ const Keyboard = ({
 				}
 			>
 				<div className="alert alert-info" role="alert">
-					The D+ and Enable 5V pins and GPIO Pin Order are configured in <a href="../peripheral-mapping" className="alert-link">Peripheral Mapping</a>
+					The D+ and Enable 5V pins and GPIO Pin Order are configured in{' '}
+					<a href="../peripheral-mapping" className="alert-link">
+						Peripheral Mapping
+					</a>
 				</div>
 				<Row className="mb-3">
 					<p>{t('AddonsConfig:keyboard-host-sub-header-text')}</p>

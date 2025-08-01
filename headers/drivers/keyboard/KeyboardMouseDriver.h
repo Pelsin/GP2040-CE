@@ -3,20 +3,20 @@
  * SPDX-FileCopyrightText: Copyright (c) 2024 OpenStickCommunity (gp2040-ce.info)
  */
 
-#ifndef _KEYBOARD_DRIVER_H_
-#define _KEYBOARD_DRIVER_H_
+#ifndef _KEYBOARD_MOUSE_DRIVER_H_
+#define _KEYBOARD_MOUSE_DRIVER_H_
 
 #include "gpdriver.h"
-#include "drivers/keyboard/KeyboardDescriptors.h"
+#include "drivers/keyboard/KeyboardMouseDescriptors.h"
 #include "eventmanager.h"
 
-class KeyboardDriver : public GPDriver
+class KeyboardMouseDriver : public GPDriver
 {
 public:
     virtual void initialize();
     virtual bool process(Gamepad *gamepad);
     virtual void initializeAux() {}
-    virtual void processAux() {}
+    virtual void processAux();
     virtual uint16_t get_report(uint8_t report_id, hid_report_type_t report_type, uint8_t *buffer, uint16_t reqlen);
     virtual void set_report(uint8_t report_id, hid_report_type_t report_type, uint8_t const *buffer, uint16_t bufsize);
     virtual bool vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const *request);
@@ -27,7 +27,7 @@ public:
     virtual const uint8_t *get_descriptor_device_qualifier_cb();
     virtual uint16_t GetJoystickMidValue();
     virtual USBListener *get_usb_auth_listener() { return nullptr; }
-    void handleEncoder(GPEvent *e);                 // for Volume - rotary encoder
+    void handleEncoder(GPEvent *e); // for Volume - rotary encoder
 private:
     void releaseAllKeys(void);
     void pressKey(uint8_t code);
@@ -40,4 +40,4 @@ private:
     int8_t volumeChange;
 };
 
-#endif // _KEYBOARD_DRIVER_H_
+#endif // _KEYBOARD_MOUSE_DRIVER_H_
