@@ -17,6 +17,7 @@
 #include "addons/focus_mode.h"
 #include "addons/dualdirectional.h"
 #include "addons/tilt.h"
+#include "addons/keyboard_host.h"
 #include "addons/mouse_host.h"
 #include "addons/i2canalog1219.h"
 #include "addons/reverse.h"
@@ -95,9 +96,9 @@ void GP2040::setup() {
 	adc_init();
 
 	// Setup Add-ons
-	// addons.LoadUSBAddon(new KeyboardHostAddon()); // Disabled to avoid conflicts
+	addons.LoadUSBAddon(new KeyboardHostAddon()); // Disabled to avoid conflicts
 	addons.LoadUSBAddon(new MouseHostAddon()); // Only mouse host addon enabled
-	// addons.LoadUSBAddon(new GamepadUSBHostAddon()); // Disabled to avoid conflicts
+	addons.LoadUSBAddon(new GamepadUSBHostAddon()); // Disabled to avoid conflicts
 	addons.LoadAddon(new AnalogInput());
 	addons.LoadAddon(new BootselButtonAddon());
 	addons.LoadAddon(new DualDirectionalInput());

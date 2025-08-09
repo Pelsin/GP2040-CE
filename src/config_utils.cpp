@@ -825,6 +825,10 @@ void ConfigUtils::initUnsetPropertiesWithDefaults(Config& config)
     INIT_UNSET_PROPERTY(config.addonOptions.keyboardHostOptions.mapping, keyButtonR3, KEY_BUTTON_R3);
     INIT_UNSET_PROPERTY(config.addonOptions.keyboardHostOptions.mapping, keyButtonA1, KEY_BUTTON_A1);
     INIT_UNSET_PROPERTY(config.addonOptions.keyboardHostOptions.mapping, keyButtonA2, KEY_BUTTON_A2);
+    INIT_UNSET_PROPERTY(config.addonOptions.keyboardHostOptions, mouseLeft, 0);
+    INIT_UNSET_PROPERTY(config.addonOptions.keyboardHostOptions, mouseMiddle, 0);
+    INIT_UNSET_PROPERTY(config.addonOptions.keyboardHostOptions, mouseRight, 0);
+    INIT_UNSET_PROPERTY(config.addonOptions.keyboardHostOptions, mouseSensitivity, KEYBOARD_HOST_MOUSE_SENSITIVITY);
 
     // addonOptions.focusModeOptions
     INIT_UNSET_PROPERTY(config.addonOptions.focusModeOptions, enabled, !!FOCUS_MODE_ENABLED);

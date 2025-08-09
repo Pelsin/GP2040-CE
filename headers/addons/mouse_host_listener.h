@@ -18,14 +18,8 @@ public:
 	virtual void set_report_complete(uint8_t dev_addr, uint8_t instance, uint8_t report_id, uint8_t report_type, uint16_t len) {}
 	virtual void get_report_complete(uint8_t dev_addr, uint8_t instance, uint8_t report_id, uint8_t report_type, uint16_t len) {}
 	virtual void set_report(uint8_t dev_addr, uint8_t instance, uint8_t report_id, uint8_t report_type, uint8_t const *report, uint16_t len) {}
-
-	// Method to clear movement data after successful transmission
-	void clearMovementData();
-
-	// Static method to clear movement data from keyboard driver
-	static void clearMovementDataStatic();
-
-private:
+	virtual void clearMovementData();
+	private:
 	bool _mouse_host_mounted = false;
 
 	// Mouse state tracking

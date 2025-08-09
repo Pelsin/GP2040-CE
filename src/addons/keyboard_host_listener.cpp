@@ -2,6 +2,7 @@
 #include "drivermanager.h"
 #include "storagemanager.h"
 #include "class/hid/hid_host.h"
+#include <algorithm>
 
 #define DEV_ADDR_NONE 0xFF
 
@@ -51,11 +52,13 @@ void KeyboardHostListener::setup() {
   mouseLeftMapping = keyboardHostOptions.mouseLeft;
   mouseMiddleMapping = keyboardHostOptions.mouseMiddle;
   mouseRightMapping = keyboardHostOptions.mouseRight;
+  mouseSensitivity = keyboardHostOptions.mouseSensitivity;
+  mouseMovementMode = keyboardHostOptions.movementMode;
 
   _keyboard_host_mounted = false;
   _keyboard_dev_addr = DEV_ADDR_NONE;
   _keyboard_instance = 0;
-  
+
   _mouse_host_mounted = false;
   _mouse_dev_addr = DEV_ADDR_NONE;
   _mouse_instance = 0;
@@ -71,10 +74,10 @@ void KeyboardHostListener::process() {
   if (_keyboard_host_mounted == true || _mouse_host_mounted == true) {
     gamepad->state.dpad     |= _keyboard_host_state.dpad;
     gamepad->state.buttons  |= _keyboard_host_state.buttons;
-    gamepad->state.lx       |= _keyboard_host_state.lx;
-    gamepad->state.ly       |= _keyboard_host_state.ly;
-    gamepad->state.rx       |= _keyboard_host_state.rx;
-    gamepad->state.ry       |= _keyboard_host_state.ry;
+    gamepad->state.lx       = _keyboard_host_state.lx;
+    gamepad->state.ly       = _keyboard_host_state.ly;
+    gamepad->state.rx       = _keyboard_host_state.rx;
+    gamepad->state.ry       = _keyboard_host_state.ry;
     if (!gamepad->hasAnalogTriggers) {
         gamepad->state.lt       |= _keyboard_host_state.lt;
         gamepad->state.rt       |= _keyboard_host_state.rt;
@@ -82,12 +85,12 @@ void KeyboardHostListener::process() {
   }
 
   if ( _mouse_host_mounted == true ) {
-    gamepad->auxState.sensors.mouse.active = mouseActive;
+    gamepad->auxState.sensors.mouse.position.active = mouseActive;
     if ( mouseActive == true ) {
-        gamepad->auxState.sensors.mouse.active = true;
-        gamepad->auxState.sensors.mouse.x = mouseX;
-        gamepad->auxState.sensors.mouse.y = mouseY;
-        gamepad->auxState.sensors.mouse.z = mouseZ;
+        gamepad->auxState.sensors.mouse.position.active = true;
+        gamepad->auxState.sensors.mouse.position.x = mouseX;
+        gamepad->auxState.sensors.mouse.position.y = mouseY;
+        gamepad->auxState.sensors.mouse.position.z = mouseZ;
         mouseActive = false;
     }
   }
@@ -104,7 +107,7 @@ void KeyboardHostListener::mount(uint8_t dev_addr, uint8_t instance, uint8_t con
         _keyboard_instance = instance;
     } else if (_mouse_host_mounted == false && itf_protocol == HID_ITF_PROTOCOL_MOUSE) {
         Gamepad *gamepad = Storage::getInstance().GetGamepad();
-        gamepad->auxState.sensors.mouse.enabled = true;
+        gamepad->auxState.sensors.mouse.position.enabled = true;
         _mouse_host_mounted = true;
         _mouse_dev_addr = dev_addr;
         _mouse_instance = instance;
@@ -118,7 +121,7 @@ void KeyboardHostListener::unmount(uint8_t dev_addr) {
         _keyboard_instance = 0;
     } else if ( _mouse_host_mounted == true && _mouse_dev_addr == dev_addr ) {
         Gamepad *gamepad = Storage::getInstance().GetGamepad();
-        gamepad->auxState.sensors.mouse.enabled = false;
+        gamepad->auxState.sensors.mouse.position.enabled = false;
         _mouse_host_mounted = false;
         _mouse_dev_addr = DEV_ADDR_NONE;
         _mouse_instance = 0;
@@ -235,4 +238,26 @@ void KeyboardHostListener::process_mouse_report(uint8_t dev_addr, hid_mouse_repo
   mouseY = report->y;
   mouseZ = report->wheel;
   mouseActive = true;
+
+  if(mouseMovementMode == MOUSE_MOVEMENT_NONE) {
+    return;
+  }
+
+  float sensitivity = mouseSensitivity / 50.0f;
+  int32_t joystick_mid = GAMEPAD_JOYSTICK_MID;
+  int32_t joystick_min = GAMEPAD_JOYSTICK_MIN;
+  int32_t joystick_max = GAMEPAD_JOYSTICK_MAX;
+  int32_t scale_factor = joystick_mid / 127;
+
+  int32_t scaledX = joystick_mid + static_cast<int32_t>(report->x * sensitivity * scale_factor);
+  int32_t scaledY = joystick_mid + static_cast<int32_t>(-report->y * sensitivity * scale_factor);
+
+  if(mouseMovementMode == MOUSE_MOVEMENT_LEFT_ANALOG) {
+    _keyboard_host_state.lx = std::clamp(scaledX, joystick_min, joystick_max);
+    _keyboard_host_state.ly = std::clamp(scaledY, joystick_min, joystick_max);
+  } else if(mouseMovementMode == MOUSE_MOVEMENT_RIGHT_ANALOG) {
+    _keyboard_host_state.rx = std::clamp(scaledX, joystick_min, joystick_max);
+    _keyboard_host_state.ry = std::clamp(scaledY, joystick_min, joystick_max);
+  }
+
 }

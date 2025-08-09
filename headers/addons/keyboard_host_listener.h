@@ -69,6 +69,8 @@ private:
     uint16_t mouseLeftMapping;
     uint16_t mouseMiddleMapping;
     uint16_t mouseRightMapping;
+    uint32_t mouseSensitivity;
+    uint8_t mouseMovementMode;
     int16_t mouseX;
     int16_t mouseY;
     int16_t mouseZ;

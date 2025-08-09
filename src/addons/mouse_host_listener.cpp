@@ -1,16 +1,11 @@
 #include "addons/mouse_host_listener.h"
 #include "storagemanager.h"
-#include "class/hid/hid.h"
-#include "pico/time.h"
+#include "drivermanager.h"
+#include "class/hid/hid_host.h"
 
-// Static instance reference for clearing movement data
-static MouseHostListener *staticInstance = nullptr;
+void MouseHostListener::setup() {}
 
-void MouseHostListener::setup() {
-	// Setup is called automatically when the USB addon is loaded
-	staticInstance = this; // Store reference for static access
-}
-
+// TODO We should save the device address and validate its the correct when when reporting
 void MouseHostListener::mount(uint8_t dev_addr, uint8_t instance, uint8_t const *desc_report, uint16_t desc_len) {
 	// Assume any device is a mouse - we'll filter in report_received
 	_mouse_host_mounted = true;
@@ -32,8 +27,9 @@ void MouseHostListener::report_received(uint8_t dev_addr, uint8_t instance, uint
 	if (!_mouse_host_mounted)
 		return;
 
-	// Validate this looks like a mouse report
-	if (len >= sizeof(hid_mouse_report_t)) {
+	uint8_t const itf_protocol = tuh_hid_interface_protocol(dev_addr, instance);
+
+	if (itf_protocol == HID_ITF_PROTOCOL_MOUSE) {
 		hid_mouse_report_t const *mouse_report = (hid_mouse_report_t const *)report;
 
 		// Update button states immediately (these persist)
@@ -42,9 +38,9 @@ void MouseHostListener::report_received(uint8_t dev_addr, uint8_t instance, uint
 		mouseMiddleButton = (mouse_report->buttons & MOUSE_BUTTON_MIDDLE) != 0;
 
 		// Update movement data - these are deltas that should only be sent once
-		mouseX = (int16_t)mouse_report->x;
-		mouseY = (int16_t)mouse_report->y;
-		mouseZ = (int16_t)mouse_report->wheel;
+		mouseX = mouse_report->x;
+		mouseY = mouse_report->y;
+		mouseZ = mouse_report->wheel;
 		hasNewMovementData = (mouseX != 0 || mouseY != 0 || mouseZ != 0);
 
 		// Set active flag if there's actual movement or button activity
@@ -92,10 +88,4 @@ void MouseHostListener::clearMovementData() {
 
 	// Recalculate active state based on current button states
 	mouseActive = (mouseLeftButton || mouseRightButton || mouseMiddleButton);
-}
-
-void MouseHostListener::clearMovementDataStatic() {
-	if (staticInstance) {
-		staticInstance->clearMovementData();
-	}
 }
