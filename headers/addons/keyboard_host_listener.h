@@ -71,6 +71,9 @@ private:
     uint16_t mouseRightMapping;
     uint32_t mouseSensitivity;
     uint8_t mouseMovementMode;
+    float mouseSensitivityScale;
+    int16_t joystickMid;
+    int32_t mouseScaleFactor;
     int16_t mouseX;
     int16_t mouseY;
     int16_t mouseZ;

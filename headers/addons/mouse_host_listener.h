@@ -21,8 +21,9 @@ public:
 	virtual void clearMovementData();
 	private:
 	bool _mouse_host_mounted = false;
+	uint8_t _mouse_dev_addr = 0;
+	uint8_t _mouse_instance = 0;
 
-	// Mouse state tracking
 	bool mouseActive = false;
 	int16_t mouseX = 0;
 	int16_t mouseY = 0;
@@ -31,7 +32,6 @@ public:
 	bool mouseRightButton = false;
 	bool mouseMiddleButton = false;
 
-	// Track if movement data is new/unconsumed
 	bool hasNewMovementData = false;
 };
 
