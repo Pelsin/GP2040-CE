@@ -72,6 +72,8 @@ private:
     uint32_t mouseSensitivity;
     uint8_t mouseMovementMode;
     float mouseSensitivityScale;
+    uint32_t mouseResetMS;
+    uint32_t mouseResetNextTimer;
     int16_t joystickMid;
     int32_t mouseScaleFactor;
     int16_t mouseX;

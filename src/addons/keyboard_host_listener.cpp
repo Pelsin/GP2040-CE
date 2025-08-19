@@ -4,9 +4,6 @@
 #include "class/hid/hid_host.h"
 #include <algorithm>
 
-constexpr uint16_t JOYSTICK_MIN = GAMEPAD_JOYSTICK_MIN;
-constexpr uint16_t JOYSTICK_MAX = GAMEPAD_JOYSTICK_MAX;
-
 #define DEV_ADDR_NONE 0xFF
 
 void KeyboardHostListener::setup() {
@@ -57,8 +54,10 @@ void KeyboardHostListener::setup() {
   mouseRightMapping = keyboardHostOptions.mouseRight;
   mouseSensitivity = keyboardHostOptions.mouseSensitivity;
   mouseMovementMode = keyboardHostOptions.movementMode;
-  mouseSensitivityScale = mouseSensitivity / 50.0f;
+  mouseSensitivityScale = mouseSensitivity / 10.0f;
   mouseScaleFactor = GAMEPAD_JOYSTICK_MID / 127;
+  mouseResetMS = 16;
+  mouseResetNextTimer = 0;
 
   joystickMid = DriverManager::getInstance().getDriver() != nullptr ?
       DriverManager::getInstance().getDriver()->GetJoystickMidValue() : GAMEPAD_JOYSTICK_MID;
@@ -94,12 +93,19 @@ void KeyboardHostListener::process() {
 
   if ( _mouse_host_mounted == true ) {
     gamepad->auxState.sensors.mouse.position.active = mouseActive;
+
     if ( mouseActive == true ) {
         gamepad->auxState.sensors.mouse.position.active = true;
         gamepad->auxState.sensors.mouse.position.x = mouseX;
         gamepad->auxState.sensors.mouse.position.y = mouseY;
         gamepad->auxState.sensors.mouse.position.z = mouseZ;
         mouseActive = false;
+    } else if(mouseResetNextTimer < getMillis()) {
+        // Since mouse position reports only happen when the mouse is moved, we need to reset the position manually
+       _keyboard_host_state.lx = joystickMid;
+       _keyboard_host_state.ly = joystickMid;
+       _keyboard_host_state.rx = joystickMid;
+       _keyboard_host_state.ry = joystickMid;
     }
   }
 }
@@ -246,22 +252,21 @@ void KeyboardHostListener::process_mouse_report(uint8_t dev_addr, hid_mouse_repo
     return;
   }
 
-  uint16_t targetX, targetY;
+  mouseResetNextTimer = getMillis() + mouseResetMS;
 
-  if (report->x == 0 && report->y == 0) {
-    targetX = joystickMid;
-    targetY = joystickMid;
-  } else {
-    targetX = joystickMid + (report->x * mouseSensitivityScale * mouseScaleFactor);
-    targetY = joystickMid + (report->y * mouseSensitivityScale * mouseScaleFactor);
-  }
+auto scaleMouseToJoystick = [this](int8_t mouseVal) -> uint16_t {
+    if (mouseVal == 0) return joystickMid;
+    return std::clamp(static_cast<int32_t>(joystickMid + mouseVal * mouseSensitivityScale * mouseScaleFactor),
+                      static_cast<int32_t>(GAMEPAD_JOYSTICK_MIN),
+                      static_cast<int32_t>(GAMEPAD_JOYSTICK_MAX));
+};
 
   if(mouseMovementMode == MOUSE_MOVEMENT_LEFT_ANALOG) {
-    _keyboard_host_state.lx = std::clamp(targetX, JOYSTICK_MIN, JOYSTICK_MAX);
-    _keyboard_host_state.ly = std::clamp(targetY, JOYSTICK_MIN, JOYSTICK_MAX);
+    _keyboard_host_state.lx = scaleMouseToJoystick(report->x);
+    _keyboard_host_state.ly = scaleMouseToJoystick(report->y);
   } else if(mouseMovementMode == MOUSE_MOVEMENT_RIGHT_ANALOG) {
-    _keyboard_host_state.rx = std::clamp(targetX, JOYSTICK_MIN, JOYSTICK_MAX);
-    _keyboard_host_state.ry = std::clamp(targetY, JOYSTICK_MIN, JOYSTICK_MAX);
+    _keyboard_host_state.rx = scaleMouseToJoystick(report->x);
+    _keyboard_host_state.ry = scaleMouseToJoystick(report->y);
   }
 
 }
