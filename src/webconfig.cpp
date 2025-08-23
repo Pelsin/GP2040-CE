@@ -11,6 +11,7 @@
 #include "config_utils.h"
 #include "types.h"
 #include "version.h"
+#include "pico/time.h"
 
 #include <cstring>
 #include <string>
@@ -19,6 +20,7 @@
 #include <set>
 
 #include <pico/types.h>
+#include "pico/time.h"
 
 // HTTPD Includes
 #include <ArduinoJson.h>
@@ -30,6 +32,8 @@
 #include "lwip/def.h"
 #include "lwip/mem.h"
 #include "addons/input_macro.h"
+#include "websocket.h"
+#include "webconfig_websocket.h" // Ensure websocket_conn_t and related functions are declared
 
 #define PATH_CGI_ACTION "/cgi/action"
 
@@ -37,12 +41,24 @@
 
 extern struct fsdata_file file__index_html[];
 
-const static char* spaPaths[] = { "/backup", "/display-config", "/led-config", "/pin-mapping", "/settings", "/reset-settings", "/add-ons", "/custom-theme", "/macro", "/peripheral-mapping" };
+const static char* spaPaths[] = { "/backup", "/display-config", "/led-config", "/pin-mapping", "/settings", "/reset-settings", "/add-ons", "/custom-theme", "/macro", "/peripheral-mapping", "/playground" };
 const static char* excludePaths[] = { "/css", "/images", "/js", "/static" };
+const static char* webSocketPaths[] = { "/gpio-state", "/he-state" };
 const static uint32_t rebootDelayMs = 500;
 static string http_post_uri;
 static char http_post_payload[LWIP_HTTPD_POST_MAX_PAYLOAD_LEN];
 static uint16_t http_post_payload_len = 0;
+
+// WebSocket support for real-time gamepad monitoring
+#define MAX_WEBSOCKET_CONNECTIONS 4
+
+// Structure to track WebSocket client information
+typedef struct {
+    ws_connection_t* connection;
+    const char* requested_path;
+} websocket_client_info_t;
+
+static websocket_client_info_t websocket_clients[MAX_WEBSOCKET_CONNECTIONS] = {{NULL, NULL}};
 
 // Don't inline this function, we do not want to consume stack space in the calling function
 template <typename T, typename K>
@@ -99,6 +115,38 @@ static void __attribute__((noinline)) docToValue(T& value, const DynamicJsonDocu
     {
         value = doc[key0][key1][key2];
     }
+}
+
+// WebSocket message handler for gamepad state updates
+static void websocket_gamepad_message_handler(ws_connection_t *conn, const char *data, size_t len) {
+    // For this use case, we primarily send data to clients
+    // Could handle client commands here if needed (e.g., pause/resume updates)
+}static void websocket_gamepad_close_handler(ws_connection_t *conn) {
+    for (int i = 0; i < MAX_WEBSOCKET_CONNECTIONS; i++) {
+        if (websocket_clients[i].connection == conn) {
+            websocket_clients[i].connection = NULL;
+            websocket_clients[i].requested_path = NULL;
+            break;
+        }
+    }
+}
+
+static bool add_websocket_connection(ws_connection_t *conn, const char* requested_path) {
+    for (int i = 0; i < MAX_WEBSOCKET_CONNECTIONS; i++) {
+        if (websocket_clients[i].connection == NULL) {
+            websocket_clients[i].connection = conn;
+            websocket_clients[i].requested_path = requested_path;
+            websocket_set_message_callback(conn, websocket_gamepad_message_handler);
+            websocket_set_close_callback(conn, websocket_gamepad_close_handler);
+
+            // Hmm let's see if we can send a welcome message
+            const char* welcome = "{\"type\":\"welcome\",\"message\":\"Hello is this thing on!?\"}";
+            websocket_send_text(conn, welcome);
+
+            return true;
+        }
+    }
+    return false; // No free slots
 }
 
 // Don't inline this function, we do not want to consume stack space in the calling function
@@ -1265,7 +1313,7 @@ std::string getKeyMappings()
     writeDoc(doc, "E10", keyboardMapping.keyButtonE10);
     writeDoc(doc, "E11", keyboardMapping.keyButtonE11);
     writeDoc(doc, "E12", keyboardMapping.keyButtonE12);
-    
+
     return serialize_json(doc);
 }
 
@@ -1596,7 +1644,7 @@ std::string setAddonOptions()
     docToPin(turboOptions.shmupDialPin, doc, "pinShmupDial");
     docToValue(turboOptions.turboLedType, doc, "turboLedType");
     docToValue(turboOptions.turboLedIndex, doc, "turboLedIndex");
-    docToValue(turboOptions.turboLedColor, doc, "turboLedColor");    
+    docToValue(turboOptions.turboLedColor, doc, "turboLedColor");
     docToValue(turboOptions.enabled, doc, "TurboInputEnabled");
 
     WiiOptions& wiiOptions = Storage::getInstance().getAddonOptions().wiiOptions;
@@ -2464,3 +2512,189 @@ void fs_close_custom(struct fs_file *file)
         file->pextension = NULL;
     }
 }
+
+static struct tcp_pcb* websocket_server_pcb = NULL;
+
+static err_t websocket_server_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err) {
+    if (err != ERR_OK || p == NULL) {
+        tcp_close(pcb);
+        return ERR_OK;
+    }
+
+    char *data = (char*)p->payload;
+		const char* requested_path = NULL;
+		for (const char* wsPath : webSocketPaths) {
+			char get_request[64];
+			snprintf(get_request, sizeof(get_request), "GET %s", wsPath);
+			if (strstr(data, get_request)) {
+				requested_path = wsPath;
+				break;
+			}
+		}
+
+		if (requested_path != NULL) {
+			char *key_start = strstr(data, "Sec-WebSocket-Key: ");
+			if (key_start) {
+				key_start += 19; // Length of "Sec-WebSocket-Key: "
+				char *key_end = strstr(key_start, "\r\n");
+				if (key_end) {
+					size_t key_len = key_end - key_start;
+					char websocket_key[128];
+					if (key_len < sizeof(websocket_key)) {
+						memcpy(websocket_key, key_start, key_len);
+						websocket_key[key_len] = '\0';
+
+						// Create WebSocket connection
+						ws_connection_t *conn;
+						conn = websocket_accept_connection(pcb, websocket_key);
+						if (conn != NULL) {
+							if (add_websocket_connection(conn, requested_path)) {
+								// Success?
+								tcp_recved(pcb, p->tot_len);
+								pbuf_free(p);
+								return ERR_OK;
+							} else {
+								// No free slots
+								websocket_close(conn);
+							}
+						}
+					}
+				}
+			}
+		}
+
+    // Not a valid WebSocket upgrade request or failed to establish connection
+    tcp_recved(pcb, p->tot_len);
+    pbuf_free(p);
+    tcp_close(pcb);
+    return ERR_OK;
+}
+
+static err_t websocket_server_accept(void *arg, struct tcp_pcb *newpcb, err_t err) {
+    LWIP_UNUSED_ARG(arg);
+
+    if (err != ERR_OK || newpcb == NULL) {
+        return ERR_VAL;
+    }
+
+    // Set up the new connection to handle HTTP/WebSocket requests
+    tcp_setprio(newpcb, TCP_PRIO_NORMAL);
+    tcp_recv(newpcb, websocket_server_recv);
+
+    return ERR_OK;
+}
+
+// Initialize WebSocket server on port 80, might need to adjust for your network perhaps another way to do this?
+void init_websocket_server() {
+    // Clean up any existing server
+    if (websocket_server_pcb != NULL) {
+        tcp_close(websocket_server_pcb);
+        websocket_server_pcb = NULL;
+    }
+
+    websocket_server_pcb = tcp_new();
+    if (websocket_server_pcb == NULL) {
+        return;
+    }
+
+    err_t err = tcp_bind(websocket_server_pcb, IP_ADDR_ANY, 8080);
+
+    if (err != ERR_OK) {
+        tcp_close(websocket_server_pcb);
+        websocket_server_pcb = NULL;
+        return;
+    }
+
+    websocket_server_pcb = tcp_listen(websocket_server_pcb);
+    if (websocket_server_pcb == NULL) {
+        return;
+    }
+
+    tcp_accept(websocket_server_pcb, websocket_server_accept);
+}
+
+// Send GPIO state update to a specific WebSocket client
+// Unsure if timestamp is need, is order guaranteed? Anyway nice for debug atm
+// Make sure we are comparing against last call state to not spam the client with messages
+static void send_gpio_state_update(ws_connection_t* connection, uint32_t timestamp) {
+    GpioMappingInfo *pinMappings = Storage::getInstance().getProfilePinMappings();
+
+    static uint32_t last_gpio_state = 0;
+    uint32_t gpio_state = gpio_get_all();
+    uint32_t filtered_gpio_state = 0;
+    std::vector<uint32_t> valid_pins;
+
+    for (uint32_t pin = 0; pin < NUM_BANK0_GPIOS; pin++) {
+        if (gpio_get_function(pin) != GPIO_FUNC_SIO || gpio_is_dir_out(pin)) {
+            continue;
+        }
+        if (pinMappings[pin].action <= 0 || pinMappings[pin].action == GpioAction::CUSTOM_BUTTON_COMBO) {
+            continue;
+        }
+        valid_pins.push_back(pin);
+
+        if (gpio_state & (1 << pin)) {
+            filtered_gpio_state |= (1 << pin);
+        }
+    }
+
+    if (filtered_gpio_state == last_gpio_state) {
+        return;
+    }
+
+    last_gpio_state = filtered_gpio_state;
+
+    const size_t capacity = JSON_OBJECT_SIZE(100);
+    DynamicJsonDocument doc(capacity);
+
+    auto pressedPins = doc.createNestedArray("pressedPins");
+    auto pinMappingsJson = doc.createNestedObject("pinMappings");
+
+    doc["type"] = "gpio_state";
+    doc["timestamp"] = timestamp;
+
+    // Check valid pins
+    for (uint32_t pin : valid_pins) {
+        bool pin_pressed = !((gpio_state >> pin) & 1); // Inverted logic, i think this is correct
+
+        if (pin_pressed) {
+            pressedPins.add(pin);
+        }
+
+        char pinStr[8];
+        snprintf(pinStr, sizeof(pinStr), "%d", pin);
+        auto pinInfo = pinMappingsJson.createNestedObject(pinStr);
+        pinInfo["pressed"] = pin_pressed;
+    }
+
+    std::string gpio_msg = serialize_json(doc);
+    websocket_send_text(connection, gpio_msg.c_str());
+}
+
+void update_websocket_clients() {
+    static uint32_t last_update_call = 0;
+    uint32_t now = to_ms_since_boot(get_absolute_time());
+
+
+    if (now - last_update_call < 30) {
+        return;
+    }
+
+    for (int i = 0; i < MAX_WEBSOCKET_CONNECTIONS; i++) {
+      if (websocket_clients[i].connection == NULL || websocket_clients[i].requested_path == NULL) {
+        continue;
+      }
+
+      const char* path = websocket_clients[i].requested_path;
+
+      if (strcmp(path, "/gpio-state") == 0) {
+        send_gpio_state_update(websocket_clients[i].connection, now);
+      } else if (strcmp(path, "/he-state") == 0) {
+        // TODO: Handle HE state updates?
+      }
+    }
+
+    last_update_call = now;
+}
+
+
