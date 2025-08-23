@@ -118,17 +118,19 @@ static void __attribute__((noinline)) docToValue(T& value, const DynamicJsonDocu
 }
 
 // WebSocket message handler for gamepad state updates
-static void websocket_gamepad_message_handler(ws_connection_t *conn, const char *data, size_t len) {
-    // For this use case, we primarily send data to clients
-    // Could handle client commands here if needed (e.g., pause/resume updates)
-}static void websocket_gamepad_close_handler(ws_connection_t *conn) {
-    for (int i = 0; i < MAX_WEBSOCKET_CONNECTIONS; i++) {
-        if (websocket_clients[i].connection == conn) {
-            websocket_clients[i].connection = NULL;
-            websocket_clients[i].requested_path = NULL;
-            break;
-        }
+static void websocket_message_handler(ws_connection_t *conn, const char *data, size_t len) {
+  // For this use case, we primarily send data to clients
+  // Could handle client commands here if needed (e.g., pause/resume updates)
+}
+
+static void websocket_close_handler(ws_connection_t *conn) {
+  for (int i = 0; i < MAX_WEBSOCKET_CONNECTIONS; i++) {
+    if (websocket_clients[i].connection == conn) {
+      websocket_clients[i].connection = NULL;
+      websocket_clients[i].requested_path = NULL;
+      break;
     }
+  }
 }
 
 static bool add_websocket_connection(ws_connection_t *conn, const char* requested_path) {
@@ -136,12 +138,8 @@ static bool add_websocket_connection(ws_connection_t *conn, const char* requeste
         if (websocket_clients[i].connection == NULL) {
             websocket_clients[i].connection = conn;
             websocket_clients[i].requested_path = requested_path;
-            websocket_set_message_callback(conn, websocket_gamepad_message_handler);
-            websocket_set_close_callback(conn, websocket_gamepad_close_handler);
-
-            // Hmm let's see if we can send a welcome message
-            const char* welcome = "{\"type\":\"welcome\",\"message\":\"Hello is this thing on!?\"}";
-            websocket_send_text(conn, welcome);
+            websocket_set_message_callback(conn, websocket_message_handler);
+            websocket_set_close_callback(conn, websocket_close_handler);
 
             return true;
         }

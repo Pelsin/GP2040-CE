@@ -43,7 +43,6 @@ typedef struct ws_connection {
     size_t receive_buffer_pos;
     void (*message_callback)(struct ws_connection* conn, const char* message, size_t length);
     void (*close_callback)(struct ws_connection* conn);
-    void* user_data;
 } ws_connection_t;
 
 // Function prototypes
@@ -54,8 +53,6 @@ int websocket_send_binary(ws_connection_t* conn, const uint8_t* data, size_t len
 int websocket_close(ws_connection_t* conn);
 void websocket_set_message_callback(ws_connection_t* conn, void (*callback)(ws_connection_t*, const char*, size_t));
 void websocket_set_close_callback(ws_connection_t* conn, void (*callback)(ws_connection_t*));
-void websocket_set_user_data(ws_connection_t* conn, void* user_data);
-void* websocket_get_user_data(ws_connection_t* conn);
 
 // Internal functions
 err_t websocket_recv(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err);

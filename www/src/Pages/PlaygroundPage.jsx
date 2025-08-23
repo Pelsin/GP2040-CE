@@ -28,9 +28,7 @@ export default function PlaygroundPage() {
 					const data = JSON.parse(event.data);
 					console.log('Parsed data:', data);
 
-					if (data.type === 'welcome') {
-						console.log('Received welcome message:', data.message);
-					} else if (data.type === 'gpio_state') {
+				  if (data.type === 'gpio_state') {
 						setGamepadState(data);
 					} else if (data.type === 'debug') {
 						console.log('Debug message:', data.message);

@@ -277,7 +277,7 @@ void GP2040::run() {
 
 	if (configMode == true ) {
 		rndis_init();
-		init_websocket_server(); // Initialize WebSocket server for gamepad monitoring
+		init_websocket_server(); // Initialize WebSocket server
 	}
 
 	while (1) { // LOOP
@@ -303,7 +303,7 @@ void GP2040::run() {
 			// Seems we need to call the TinyUSB task, is this really necessary or bug in main atm?
 			tud_task();
 
-			update_websocket_clients(); // Update WebSocket clients with gamepad state
+			update_websocket_clients(); // Update WebSocket clients
 			checkSaveRebootState();
 			continue;
 		}

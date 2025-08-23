@@ -291,7 +291,6 @@ ws_connection_t* websocket_accept_connection(struct tcp_pcb* pcb, const char* we
     conn->receive_buffer_pos = 0;
     conn->message_callback = NULL;
     conn->close_callback = NULL;
-    conn->user_data = NULL;
 
     if (!conn->receive_buffer) {
         free(conn);
@@ -414,16 +413,4 @@ void websocket_set_close_callback(ws_connection_t* conn, void (*callback)(ws_con
     if (conn) {
         conn->close_callback = callback;
     }
-}
-
-// Set user data
-void websocket_set_user_data(ws_connection_t* conn, void* user_data) {
-    if (conn) {
-        conn->user_data = user_data;
-    }
-}
-
-// Get user data
-void* websocket_get_user_data(ws_connection_t* conn) {
-    return conn ? conn->user_data : NULL;
 }
