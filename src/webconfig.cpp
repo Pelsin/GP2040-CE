@@ -46,7 +46,6 @@ extern struct fsdata_file file__index_html[];
 
 const static char* spaPaths[] = { "/backup", "/display-config", "/led-config", "/pin-mapping", "/settings", "/reset-settings", "/add-ons", "/custom-theme", "/macro", "/peripheral-mapping", "/playground" };
 const static char* excludePaths[] = { "/css", "/images", "/js", "/static" };
-const static char* webSocketPaths[] = { "/gpio-state", "/he-state" };
 const static uint32_t rebootDelayMs = 500;
 static string http_post_uri;
 static char http_post_payload[LWIP_HTTPD_POST_MAX_PAYLOAD_LEN];
@@ -58,10 +57,9 @@ static uint16_t http_post_payload_len = 0;
 // Structure to track WebSocket client information
 typedef struct {
     ws_connection_t* connection;
-    const char* requested_path;
 } websocket_client_info_t;
 
-static websocket_client_info_t websocket_clients[MAX_WEBSOCKET_CONNECTIONS] = {{NULL, NULL}};
+static websocket_client_info_t websocket_clients[MAX_WEBSOCKET_CONNECTIONS] = {{NULL}};
 
 // Don't inline this function, we do not want to consume stack space in the calling function
 template <typename T, typename K>
@@ -118,36 +116,6 @@ static void __attribute__((noinline)) docToValue(T& value, const DynamicJsonDocu
     {
         value = doc[key0][key1][key2];
     }
-}
-
-// WebSocket message handler for gamepad state updates
-static void websocket_message_handler(ws_connection_t *conn, const char *data, size_t len) {
-  // For this use case, we primarily send data to clients
-  // Could handle client commands here if needed (e.g., pause/resume updates)
-}
-
-static void websocket_close_handler(ws_connection_t *conn) {
-  for (int i = 0; i < MAX_WEBSOCKET_CONNECTIONS; i++) {
-    if (websocket_clients[i].connection == conn) {
-      websocket_clients[i].connection = NULL;
-      websocket_clients[i].requested_path = NULL;
-      break;
-    }
-  }
-}
-
-static bool add_websocket_connection(ws_connection_t *conn, const char* requested_path) {
-    for (int i = 0; i < MAX_WEBSOCKET_CONNECTIONS; i++) {
-        if (websocket_clients[i].connection == NULL) {
-            websocket_clients[i].connection = conn;
-            websocket_clients[i].requested_path = requested_path;
-            websocket_set_message_callback(conn, websocket_message_handler);
-            websocket_set_close_callback(conn, websocket_close_handler);
-
-            return true;
-        }
-    }
-    return false; // No free slots
 }
 
 // Don't inline this function, we do not want to consume stack space in the calling function
@@ -1492,22 +1460,22 @@ std::string setHETriggerCalibration()
     calibrationSelectPins[1] = doc["muxSelectPin1"];
     calibrationSelectPins[2] = doc["muxSelectPin2"];
     calibrationSelectPins[3] = doc["muxSelectPin3"];
-    
+
     calibrationADCPins[0] = doc["muxADCPin0"];
     calibrationADCPins[1] = doc["muxADCPin1"];
     calibrationADCPins[2] = doc["muxADCPin2"];
     calibrationADCPins[3] = doc["muxADCPin3"];
 
     for (int i = 0; i < 4; i++) {
-        if ( calibrationSelectPins[i] != -1 && 
-                calibrationSelectPins[i] >= 0 && 
+        if ( calibrationSelectPins[i] != -1 &&
+                calibrationSelectPins[i] >= 0 &&
                 calibrationSelectPins[i] <= 29 ) {
             gpio_init(calibrationSelectPins[i]);
             gpio_set_dir(calibrationSelectPins[i], GPIO_OUT);
             gpio_put(calibrationSelectPins[i], 0);
         }
-        if ( calibrationADCPins[i] != -1 && 
-                calibrationADCPins[i] >= 26 && 
+        if ( calibrationADCPins[i] != -1 &&
+                calibrationADCPins[i] >= 26 &&
                 calibrationADCPins[i] <= 29 ) {
             adc_gpio_init(calibrationADCPins[i]);
         }
@@ -1587,9 +1555,9 @@ std::string getHETriggerOptions()
 {
     const size_t capacity = JSON_OBJECT_SIZE(500);
     DynamicJsonDocument doc(capacity);
-    
+
     HETriggerInfo * heTriggers = Storage::getInstance().getAddonOptions().heTriggerOptions.triggers;
-    
+
     JsonArray triggerList = doc.createNestedArray("triggers");
     for(int i = 0; i < 32; i++) {
         JsonObject trigger = triggerList.createNestedObject();
@@ -1617,7 +1585,7 @@ std::string setHETriggerOptions()
         heTriggers[i].max = doc["triggers"][i]["max"];
         heTriggers[i].polarity = doc["triggers"][i]["polarity"];
     }
-    
+
     Storage::getInstance().getAddonOptions().heTriggerOptions.triggers_count = 32;
     EventManager::getInstance().triggerEvent(new GPStorageSaveEvent(true));
 
@@ -2673,6 +2641,52 @@ void fs_close_custom(struct fs_file *file)
 
 static struct tcp_pcb* websocket_server_pcb = NULL;
 
+// WebSocket message handler for gamepad state updates
+static void websocket_message_handler(ws_connection_t *conn, const char *data, size_t len) {
+  // Parse JSON messages for other commands
+  DynamicJsonDocument doc(256);
+  DeserializationError error = deserializeJson(doc, data, len);
+
+  if (!error) {
+    const char* type = doc["type"];
+    if (type && strcmp(type, "ping") == 0) {
+      // Respond to JSON ping with JSON pong
+      const size_t capacity = JSON_OBJECT_SIZE(2);
+      DynamicJsonDocument response(capacity);
+      response["type"] = "pong";
+      response["timestamp"] = to_ms_since_boot(get_absolute_time());
+
+      std::string pong_msg = serialize_json(response);
+      websocket_send_text(conn, pong_msg.c_str());
+    }
+  }
+
+  // For other use cases, we primarily send data to clients
+  // Could handle client commands here if needed (e.g., pause/resume updates)
+}
+
+static void websocket_close_handler(ws_connection_t *conn) {
+  for (int i = 0; i < MAX_WEBSOCKET_CONNECTIONS; i++) {
+    if (websocket_clients[i].connection == conn) {
+      websocket_clients[i].connection = NULL;
+      break;
+    }
+  }
+}
+
+static bool add_websocket_connection(ws_connection_t *conn) {
+    for (int i = 0; i < MAX_WEBSOCKET_CONNECTIONS; i++) {
+        if (websocket_clients[i].connection == NULL) {
+            websocket_clients[i].connection = conn;
+            websocket_set_message_callback(conn, websocket_message_handler);
+            websocket_set_close_callback(conn, websocket_close_handler);
+
+            return true;
+        }
+    }
+    return false; // No free slots
+}
+
 static err_t websocket_server_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err) {
     if (err != ERR_OK || p == NULL) {
         tcp_close(pcb);
@@ -2680,46 +2694,43 @@ static err_t websocket_server_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *
     }
 
     char *data = (char*)p->payload;
-		const char* requested_path = NULL;
-		for (const char* wsPath : webSocketPaths) {
-			char get_request[64];
-			snprintf(get_request, sizeof(get_request), "GET %s", wsPath);
-			if (strstr(data, get_request)) {
-				requested_path = wsPath;
-				break;
-			}
-		}
+    bool is_websocket_request = false;
 
-		if (requested_path != NULL) {
-			char *key_start = strstr(data, "Sec-WebSocket-Key: ");
-			if (key_start) {
-				key_start += 19; // Length of "Sec-WebSocket-Key: "
-				char *key_end = strstr(key_start, "\r\n");
-				if (key_end) {
-					size_t key_len = key_end - key_start;
-					char websocket_key[128];
-					if (key_len < sizeof(websocket_key)) {
-						memcpy(websocket_key, key_start, key_len);
-						websocket_key[key_len] = '\0';
+    // Check for WebSocket upgrade request on root path
+    if (strstr(data, "GET /") && strstr(data, "Upgrade: websocket")) {
+        is_websocket_request = true;
+    }
 
-						// Create WebSocket connection
-						ws_connection_t *conn;
-						conn = websocket_accept_connection(pcb, websocket_key);
-						if (conn != NULL) {
-							if (add_websocket_connection(conn, requested_path)) {
-								// Success?
-								tcp_recved(pcb, p->tot_len);
-								pbuf_free(p);
-								return ERR_OK;
-							} else {
-								// No free slots
-								websocket_close(conn);
-							}
-						}
-					}
-				}
-			}
-		}
+    if (is_websocket_request) {
+        char *key_start = strstr(data, "Sec-WebSocket-Key: ");
+        if (key_start) {
+            key_start += 19; // Length of "Sec-WebSocket-Key: "
+            char *key_end = strstr(key_start, "\r\n");
+            if (key_end) {
+                size_t key_len = key_end - key_start;
+                char websocket_key[128];
+                if (key_len < sizeof(websocket_key)) {
+                    memcpy(websocket_key, key_start, key_len);
+                    websocket_key[key_len] = '\0';
+
+                    // Create WebSocket connection
+                    ws_connection_t *conn;
+                    conn = websocket_accept_connection(pcb, websocket_key);
+                    if (conn != NULL) {
+                        if (add_websocket_connection(conn)) {
+                            // Success?
+                            tcp_recved(pcb, p->tot_len);
+                            pbuf_free(p);
+                            return ERR_OK;
+                        } else {
+                            // No free slots
+                            websocket_close(conn);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // Not a valid WebSocket upgrade request or failed to establish connection
     tcp_recved(pcb, p->tot_len);
@@ -2742,7 +2753,7 @@ static err_t websocket_server_accept(void *arg, struct tcp_pcb *newpcb, err_t er
     return ERR_OK;
 }
 
-// Initialize WebSocket server on port 80, might need to adjust for your network perhaps another way to do this?
+// Initialize WebSocket server on port 8080
 void init_websocket_server() {
     // Clean up any existing server
     if (websocket_server_pcb != NULL) {
@@ -2833,26 +2844,21 @@ void update_websocket_clients() {
     static uint32_t last_update_call = 0;
     uint32_t now = to_ms_since_boot(get_absolute_time());
 
-
     if (now - last_update_call < 30) {
         return;
     }
 
     for (int i = 0; i < MAX_WEBSOCKET_CONNECTIONS; i++) {
-      if (websocket_clients[i].connection == NULL || websocket_clients[i].requested_path == NULL) {
+      if (websocket_clients[i].connection == NULL) {
         continue;
       }
 
-      const char* path = websocket_clients[i].requested_path;
-
-      if (strcmp(path, "/gpio-state") == 0) {
-        send_gpio_state_update(websocket_clients[i].connection, now);
-      } else if (strcmp(path, "/he-state") == 0) {
-        // TODO: Handle HE state updates?
-      }
+      // Send GPIO state updates to all connected clients
+      send_gpio_state_update(websocket_clients[i].connection, now);
     }
 
     last_update_call = now;
 }
+
 
 

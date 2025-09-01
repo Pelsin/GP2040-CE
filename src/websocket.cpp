@@ -241,11 +241,11 @@ void websocket_err(void* arg, err_t err) {
 
 // WebSocket poll callback
 err_t websocket_poll(void* arg, struct tcp_pcb* pcb) {
-    // Send keepalive ping every 30 seconds
+    // Send keepalive ping every 10 seconds
     static uint32_t last_ping = 0;
     uint32_t now = to_us_since_boot(get_absolute_time()) / 1000000;
 
-    if (now - last_ping > 30) {
+    if (now - last_ping > 10) {
         ws_connection_t* conn = (ws_connection_t*)arg;
         if (conn && conn->state == WS_STATE_OPEN) {
             uint8_t ping_data[] = "ping";
@@ -301,7 +301,7 @@ ws_connection_t* websocket_accept_connection(struct tcp_pcb* pcb, const char* we
     tcp_arg(pcb, conn);
     tcp_recv(pcb, websocket_recv);
     tcp_err(pcb, websocket_err);
-    tcp_poll(pcb, websocket_poll, 4); // Poll every 2 seconds
+    tcp_poll(pcb, websocket_poll, 4);
 
     // Generate and send handshake response
     char accept_key[64];

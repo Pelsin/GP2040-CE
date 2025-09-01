@@ -6,14 +6,17 @@ export default function PlaygroundPage() {
 	const [gamepadState, setGamepadState] = useState(null);
 	const [connectionStatus, setConnectionStatus] = useState('Disconnected');
 	const [error, setError] = useState(null);
+	const [lastPing, setLastPing] = useState(null);
+	const [pingLatency, setPingLatency] = useState(null);
 	const wsRef = useRef(null);
+	const pingTimeRef = useRef(null);
 
 	const connectWebSocket = () => {
 		try {
 			setError(null);
 			setConnectionStatus('Connecting...');
 
-			const ws = new WebSocket('ws://192.168.7.1:8080/gpio-state');
+			const ws = new WebSocket('ws://192.168.7.1:8080');
 			wsRef.current = ws;
 
 			ws.onopen = () => {
@@ -28,10 +31,16 @@ export default function PlaygroundPage() {
 					const data = JSON.parse(event.data);
 					console.log('Parsed data:', data);
 
-				  if (data.type === 'gpio_state') {
+					if (data.type === 'gpio_state') {
 						setGamepadState(data);
-					} else if (data.type === 'debug') {
-						console.log('Debug message:', data.message);
+					} if (data.type === 'pong') {
+						// Handle pong response from server
+						if (pingTimeRef.current) {
+							const latency = Date.now() - pingTimeRef.current;
+							setPingLatency(latency);
+							pingTimeRef.current = null;
+						}
+						setLastPing(new Date().toISOString());
 					} else {
 						console.log('Unknown message type:', data.type);
 					}
@@ -44,6 +53,9 @@ export default function PlaygroundPage() {
 			ws.onclose = (event) => {
 				setIsConnected(false);
 				setConnectionStatus('Disconnected');
+				setLastPing(null);
+				setPingLatency(null);
+				pingTimeRef.current = null;
 				console.log('WebSocket disconnected:', event.code, event.reason);
 				if (event.code !== 1000) {
 					setError(`Connection closed unexpectedly (code: ${event.code})`);
@@ -65,6 +77,16 @@ export default function PlaygroundPage() {
 		if (wsRef.current) {
 			wsRef.current.close(1000, 'User requested disconnect');
 			wsRef.current = null;
+		}
+		setLastPing(null);
+		setPingLatency(null);
+		pingTimeRef.current = null;
+	};
+
+	const sendPing = () => {
+		if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+			pingTimeRef.current = Date.now();
+			wsRef.current.send(JSON.stringify({ type: 'ping', timestamp: pingTimeRef.current }));
 		}
 	};
 
@@ -92,6 +114,28 @@ export default function PlaygroundPage() {
 									>
 										{connectionStatus}
 									</Badge>
+									{isConnected && (
+										<div className="d-flex align-items-center">
+											<Button
+												variant="secondary"
+												size="sm"
+												onClick={sendPing}
+												className="me-2"
+											>
+												Send Ping
+											</Button>
+											{pingLatency !== null && (
+												<Badge bg="info" className="me-2">
+													Latency: {pingLatency}ms
+												</Badge>
+											)}
+											{lastPing && (
+												<small className="text-muted">
+													Last ping: {new Date(lastPing).toLocaleTimeString()}
+												</small>
+											)}
+										</div>
+									)}
 								</div>
 							</div>
 							<Button
