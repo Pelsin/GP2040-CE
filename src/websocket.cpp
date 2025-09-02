@@ -199,7 +199,7 @@ err_t websocket_recv(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err) 
                 break;
 
             case WS_OPCODE_PONG:
-                // Handle pong (optional)
+                websocket_send_text(conn, ("{\"type\":\"heartbeat\",\"timestamp\":" + std::to_string(to_us_since_boot(get_absolute_time()) / 1000) + "}").c_str());
                 break;
         }
 
@@ -245,7 +245,7 @@ err_t websocket_poll(void* arg, struct tcp_pcb* pcb) {
     static uint32_t last_ping = 0;
     uint32_t now = to_us_since_boot(get_absolute_time()) / 1000000;
 
-    if (now - last_ping > 10) {
+    if (now - last_ping > 3) {
         ws_connection_t* conn = (ws_connection_t*)arg;
         if (conn && conn->state == WS_STATE_OPEN) {
             uint8_t ping_data[] = "ping";

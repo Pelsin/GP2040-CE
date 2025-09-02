@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { Container, Row, Col, Card, Button, Badge, Alert } from 'react-bootstrap';
+import {
+	Container,
+	Row,
+	Col,
+	Card,
+	Button,
+	Badge,
+	Alert,
+} from 'react-bootstrap';
 
 export default function PlaygroundPage() {
 	const [isConnected, setIsConnected] = useState(false);
@@ -10,6 +18,33 @@ export default function PlaygroundPage() {
 	const [pingLatency, setPingLatency] = useState(null);
 	const wsRef = useRef(null);
 	const pingTimeRef = useRef(null);
+	const heartbeatTimeoutRef = useRef(null);
+	const [lastHeartbeat, setLastHeartbeat] = useState(null);
+
+	const resetHeartbeat = () => {
+		setLastHeartbeat(Date.now());
+		if (heartbeatTimeoutRef.current) {
+			clearTimeout(heartbeatTimeoutRef.current);
+		}
+		heartbeatTimeoutRef.current = setTimeout(() => {
+			console.log('Heartbeat timeout - assuming connection lost');
+			setIsConnected(false);
+			setConnectionStatus('Disconnected');
+			setLastPing(null);
+			setPingLatency(null);
+			if (wsRef.current) {
+				wsRef.current.close();
+			}
+		}, 10000);
+	};
+
+	const clearHeartbeat = () => {
+		if (heartbeatTimeoutRef.current) {
+			clearTimeout(heartbeatTimeoutRef.current);
+			heartbeatTimeoutRef.current = null;
+		}
+		setLastHeartbeat(null);
+	};
 
 	const connectWebSocket = () => {
 		try {
@@ -22,27 +57,32 @@ export default function PlaygroundPage() {
 			ws.onopen = () => {
 				setIsConnected(true);
 				setConnectionStatus('Connected');
+				resetHeartbeat();
 				console.log('WebSocket connected to gamepad monitor');
 			};
 
 			ws.onmessage = (event) => {
 				try {
-					console.log('Raw WebSocket message:', event.data);
 					const data = JSON.parse(event.data);
 					console.log('Parsed data:', data);
 
-					if (data.type === 'gpio_state') {
-						setGamepadState(data);
-					} if (data.type === 'pong') {
-						// Handle pong response from server
-						if (pingTimeRef.current) {
-							const latency = Date.now() - pingTimeRef.current;
-							setPingLatency(latency);
-							pingTimeRef.current = null;
-						}
-						setLastPing(new Date().toISOString());
-					} else {
-						console.log('Unknown message type:', data.type);
+					switch (data.type) {
+						case 'gpio_state':
+							setGamepadState(data);
+							break;
+						case 'pong':
+							if (pingTimeRef.current) {
+								const latency = Date.now() - pingTimeRef.current;
+								setPingLatency(latency);
+								pingTimeRef.current = null;
+							}
+							setLastPing(new Date().toISOString());
+							break;
+						case 'heartbeat':
+							resetHeartbeat();
+							break;
+						default:
+							console.log('Unknown message type:', data.type);
 					}
 				} catch (err) {
 					console.error('Error parsing gamepad data:', err);
@@ -56,6 +96,7 @@ export default function PlaygroundPage() {
 				setLastPing(null);
 				setPingLatency(null);
 				pingTimeRef.current = null;
+				clearHeartbeat();
 				console.log('WebSocket disconnected:', event.code, event.reason);
 				if (event.code !== 1000) {
 					setError(`Connection closed unexpectedly (code: ${event.code})`);
@@ -66,7 +107,6 @@ export default function PlaygroundPage() {
 				console.error('WebSocket error:', error);
 				setError('Connection failed. Make sure GP2040-CE is in config mode.');
 			};
-
 		} catch (err) {
 			setError(`Connection failed: ${err.message}`);
 			setConnectionStatus('Disconnected');
@@ -78,6 +118,7 @@ export default function PlaygroundPage() {
 			wsRef.current.close(1000, 'User requested disconnect');
 			wsRef.current = null;
 		}
+		clearHeartbeat();
 		setLastPing(null);
 		setPingLatency(null);
 		pingTimeRef.current = null;
@@ -86,12 +127,15 @@ export default function PlaygroundPage() {
 	const sendPing = () => {
 		if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
 			pingTimeRef.current = Date.now();
-			wsRef.current.send(JSON.stringify({ type: 'ping', timestamp: pingTimeRef.current }));
+			wsRef.current.send(
+				JSON.stringify({ type: 'ping', timestamp: pingTimeRef.current }),
+			);
 		}
 	};
 
 	useEffect(() => {
 		return () => {
+			clearHeartbeat();
 			disconnectWebSocket();
 		};
 	}, []);
@@ -109,7 +153,13 @@ export default function PlaygroundPage() {
 								<div className="d-flex align-items-center">
 									<span className="me-2">Status:</span>
 									<Badge
-										bg={isConnected ? 'success' : connectionStatus === 'Connecting...' ? 'warning' : 'danger'}
+										bg={
+											isConnected
+												? 'success'
+												: connectionStatus === 'Connecting...'
+													? 'warning'
+													: 'danger'
+										}
 										className="me-2"
 									>
 										{connectionStatus}
@@ -130,8 +180,14 @@ export default function PlaygroundPage() {
 												</Badge>
 											)}
 											{lastPing && (
-												<small className="text-muted">
+												<small className="text-muted me-3">
 													Last ping: {new Date(lastPing).toLocaleTimeString()}
+												</small>
+											)}
+											{lastHeartbeat && (
+												<small className="text-muted">
+													Last heartbeat:{' '}
+													{new Date(lastHeartbeat).toLocaleTimeString()}
 												</small>
 											)}
 										</div>
@@ -164,16 +220,23 @@ export default function PlaygroundPage() {
 								<Row>
 									<Col md={12} className="mb-4">
 										<h5 className="mb-3">Pressed Pins</h5>
-										{gamepadState.pressedPins && gamepadState.pressedPins.length > 0 ? (
+										{gamepadState.pressedPins &&
+										gamepadState.pressedPins.length > 0 ? (
 											<div className="d-flex flex-wrap">
-												{gamepadState.pressedPins.map(pin => (
-													<Badge key={pin} bg="success" className="me-2 mb-2 p-2">
+												{gamepadState.pressedPins.map((pin) => (
+													<Badge
+														key={pin}
+														bg="success"
+														className="me-2 mb-2 p-2"
+													>
 														GPIO {pin}
 													</Badge>
 												))}
 											</div>
 										) : (
-											<Badge bg="secondary" className="p-2">No pins pressed</Badge>
+											<Badge bg="secondary" className="p-2">
+												No pins pressed
+											</Badge>
 										)}
 									</Col>
 								</Row>

@@ -2844,7 +2844,7 @@ void update_websocket_clients() {
     static uint32_t last_update_call = 0;
     uint32_t now = to_ms_since_boot(get_absolute_time());
 
-    if (now - last_update_call < 30) {
+    if (now - last_update_call < 10) {
         return;
     }
 
