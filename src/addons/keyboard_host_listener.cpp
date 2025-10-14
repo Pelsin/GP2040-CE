@@ -104,10 +104,13 @@ void KeyboardHostListener::process() {
         mouseActive = false;
     } else if(mouseResetNextTimer < getMillis()) {
         // Since mouse position reports only happen when the mouse is moved, we need to reset the position manually
-       _keyboard_host_state.lx = joystickMid;
-       _keyboard_host_state.ly = joystickMid;
-       _keyboard_host_state.rx = joystickMid;
-       _keyboard_host_state.ry = joystickMid;
+        if (mouseMovementMode == MOUSE_MOVEMENT_LEFT_ANALOG) {
+            _keyboard_host_state.lx = joystickMid;
+            _keyboard_host_state.ly = joystickMid;
+        } else if (mouseMovementMode == MOUSE_MOVEMENT_RIGHT_ANALOG) {
+            _keyboard_host_state.rx = joystickMid;
+            _keyboard_host_state.ry = joystickMid;
+        }
     }
   }
 }
