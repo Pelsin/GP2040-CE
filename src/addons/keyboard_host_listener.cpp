@@ -177,13 +177,22 @@ uint8_t KeyboardHostListener::getKeycodeFromModifier(uint8_t modifier) {
 
 void KeyboardHostListener::preprocess_report()
 {
-
   _keyboard_host_state.dpad = 0;
   _keyboard_host_state.buttons = 0;
-  _keyboard_host_state.lx = joystickMid;
-  _keyboard_host_state.ly = joystickMid;
-  _keyboard_host_state.rx = joystickMid;
-  _keyboard_host_state.ry = joystickMid;
+
+  if (mouseMovementMode == MOUSE_MOVEMENT_LEFT_ANALOG) {
+    _keyboard_host_state.lx = joystickMid;
+    _keyboard_host_state.ly = joystickMid;
+  } else if (mouseMovementMode == MOUSE_MOVEMENT_RIGHT_ANALOG) {
+    _keyboard_host_state.rx = joystickMid;
+    _keyboard_host_state.ry = joystickMid;
+  } else {
+    _keyboard_host_state.lx = joystickMid;
+    _keyboard_host_state.ly = joystickMid;
+    _keyboard_host_state.rx = joystickMid;
+    _keyboard_host_state.ry = joystickMid;
+  }
+
   _keyboard_host_state.lt = 0;
   _keyboard_host_state.rt = 0;
 }
