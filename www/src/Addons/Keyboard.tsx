@@ -53,8 +53,6 @@ export const keyboardState = {
 	keyboardHostMouseSensitivity: 0,
 	keyboardHostMouseMovement: 0,
 	KeyboardHostAddonEnabled: 0,
-	keyboardHostMouseSensitivity: 0,
-	keyboardHostMouseMovement: 0,
 };
 
 const excludedButtons = [

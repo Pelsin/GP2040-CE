@@ -125,7 +125,8 @@ struct GamepadAuxMouse
     bool leftButton = false;
     bool rightButton = false;
     bool middleButton = false;
-}
+};
+
 struct GamepadAuxPower
 {
     bool charging = false;

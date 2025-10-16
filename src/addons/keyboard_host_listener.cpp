@@ -94,7 +94,7 @@ void KeyboardHostListener::process() {
   }
 
   if ( _mouse_host_mounted == true ) {
-    gamepad->auxState.sensors.mouse.active = mouseActive;
+    gamepad->auxState.sensors.mouse.position.active = mouseActive;
 
     if ( mouseActive == true ) {
         gamepad->auxState.sensors.mouse.position.active = true;
