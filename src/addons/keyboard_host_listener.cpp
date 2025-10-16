@@ -5,6 +5,9 @@
 #include <algorithm>
 
 #define DEV_ADDR_NONE 0xFF
+#define MOUSE_SCALE_FACTOR (GAMEPAD_JOYSTICK_MID / 127)
+#define GAMEPAD_JOYSTICK_MIN_I32 static_cast<int32_t>(GAMEPAD_JOYSTICK_MIN)
+#define GAMEPAD_JOYSTICK_MAX_I32 static_cast<int32_t>(GAMEPAD_JOYSTICK_MAX)
 
 void KeyboardHostListener::setup() {
   const KeyboardHostOptions& keyboardHostOptions = Storage::getInstance().getAddonOptions().keyboardHostOptions;
@@ -55,7 +58,6 @@ void KeyboardHostListener::setup() {
   mouseSensitivity = keyboardHostOptions.mouseSensitivity;
   mouseMovementMode = keyboardHostOptions.movementMode;
   mouseSensitivityScale = mouseSensitivity / 10.0f;
-  mouseScaleFactor = GAMEPAD_JOYSTICK_MID / 127;
   mouseResetMS = 16;
   mouseResetNextTimer = 0;
 
@@ -92,7 +94,7 @@ void KeyboardHostListener::process() {
   }
 
   if ( _mouse_host_mounted == true ) {
-    gamepad->auxState.sensors.mouse.position.active = mouseActive;
+    gamepad->auxState.sensors.mouse.active = mouseActive;
 
     if ( mouseActive == true ) {
         gamepad->auxState.sensors.mouse.position.active = true;
@@ -231,6 +233,11 @@ void KeyboardHostListener::process_kbd_report(uint8_t dev_addr, hid_keyboard_rep
   }
 }
 
+uint16_t KeyboardHostListener::scaleMouseToJoystick(int8_t mouseVal) {
+  int32_t result = joystickMid + (int32_t)mouseVal * mouseSensitivityScale * MOUSE_SCALE_FACTOR;
+  return std::clamp(result, GAMEPAD_JOYSTICK_MIN_I32, GAMEPAD_JOYSTICK_MAX_I32);
+}
+
 void KeyboardHostListener::process_mouse_report(uint8_t dev_addr, hid_mouse_report_t const * report)
 {
   preprocess_report();
@@ -248,23 +255,16 @@ void KeyboardHostListener::process_mouse_report(uint8_t dev_addr, hid_mouse_repo
   mouseZ = report->wheel;
   mouseActive = true;
 
-  if(mouseMovementMode == MOUSE_MOVEMENT_NONE) {
+  if (mouseMovementMode == MOUSE_MOVEMENT_NONE) {
     return;
   }
 
   mouseResetNextTimer = getMillis() + mouseResetMS;
 
-auto scaleMouseToJoystick = [this](int8_t mouseVal) -> uint16_t {
-    if (mouseVal == 0) return joystickMid;
-    return std::clamp(static_cast<int32_t>(joystickMid + mouseVal * mouseSensitivityScale * mouseScaleFactor),
-                      static_cast<int32_t>(GAMEPAD_JOYSTICK_MIN),
-                      static_cast<int32_t>(GAMEPAD_JOYSTICK_MAX));
-};
-
-  if(mouseMovementMode == MOUSE_MOVEMENT_LEFT_ANALOG) {
+  if (mouseMovementMode == MOUSE_MOVEMENT_LEFT_ANALOG) {
     _keyboard_host_state.lx = scaleMouseToJoystick(report->x);
     _keyboard_host_state.ly = scaleMouseToJoystick(report->y);
-  } else if(mouseMovementMode == MOUSE_MOVEMENT_RIGHT_ANALOG) {
+  } else if (mouseMovementMode == MOUSE_MOVEMENT_RIGHT_ANALOG) {
     _keyboard_host_state.rx = scaleMouseToJoystick(report->x);
     _keyboard_host_state.ry = scaleMouseToJoystick(report->y);
   }

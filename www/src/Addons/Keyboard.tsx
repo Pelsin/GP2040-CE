@@ -12,8 +12,8 @@ import KeyboardMapper from '../Components/KeyboardMapper';
 import { baseButtonMappings } from '../Services/WebApi';
 import { AppContext } from '../Contexts/AppContext';
 
-import { BUTTON_ACTIONS } from '../Data/Pins';
 import { BUTTON_MASKS_OPTIONS } from '../Data/Buttons';
+import { AddonPropTypes } from '../Pages/AddonsConfigPage';
 
 export const keyboardScheme = {
 	KeyboardHostAddonEnabled: yup
@@ -53,6 +53,8 @@ export const keyboardState = {
 	keyboardHostMouseSensitivity: 0,
 	keyboardHostMouseMovement: 0,
 	KeyboardHostAddonEnabled: 0,
+	keyboardHostMouseSensitivity: 0,
+	keyboardHostMouseMovement: 0,
 };
 
 const excludedButtons = [
@@ -76,7 +78,7 @@ const Keyboard = ({
 	handleChange,
 	handleCheckbox,
 	setFieldValue,
-}) => {
+}: AddonPropTypes) => {
 	const { buttonLabels, getAvailablePeripherals } = useContext(AppContext);
 	const { t } = useTranslation();
 
@@ -178,7 +180,6 @@ const Keyboard = ({
 							))}
 						</FormSelect>
 					</div>
-					<p></p>
 					<div className="col-sm-12 mb-2">
 						<Form.Label>{`${t('AddonsConfig:keyboard-host-mouse-sensitivity')}: ${values.keyboardHostMouseSensitivity}%`}</Form.Label>
 						<Form.Range
@@ -255,7 +256,7 @@ const Keyboard = ({
 					isInvalid={false}
 					checked={Boolean(values.KeyboardHostAddonEnabled)}
 					onChange={(e) => {
-						handleCheckbox('KeyboardHostAddonEnabled', values);
+						handleCheckbox('KeyboardHostAddonEnabled');
 						handleChange(e);
 					}}
 				/>
