@@ -96,38 +96,44 @@ bool DisplayAddon::updateDisplayScreen() {
         delete gpScreen; // Virtual deconstructor
         gpScreen = nullptr;
     }
-    switch(currDisplayMode) {
-        case CONFIG_INSTRUCTION:
-            gpScreen = new ConfigScreen(gpDisplay);
-            break;
-        case SPLASH:
-            gpScreen = new SplashScreen(gpDisplay);
-            break;
-        case MAIN_MENU:
-            gpScreen = new MainMenuScreen(gpDisplay);
-            break;
-        case BUTTONS:
-            gpScreen = new ButtonLayoutScreen(gpDisplay);
-            break;
-        case PIN_VIEWER:
-            gpScreen = new PinViewerScreen(gpDisplay);
-            break;
-        case DISPLAY_SAVER:
-            gpScreen = new DisplaySaverScreen(gpDisplay);
-            break;
-        case STATS:
-            gpScreen = new StatsScreen(gpDisplay);
-            break;
-        case SYSTEM_ERROR:
-            gpScreen = new SystemErrorScreen(gpDisplay, errorMessage);
-            break;
-        case RESTART:
-            gpScreen = new RestartScreen(gpDisplay, bootMode);
-            break;
-        default:
-            gpScreen = nullptr;
-            break;
-    };
+
+		gpScreen = new PS5DebugScreen(gpDisplay);
+
+    // switch(currDisplayMode) {
+    //     case CONFIG_INSTRUCTION:
+    //         gpScreen = new ConfigScreen(gpDisplay);
+    //         break;
+    //     case SPLASH:
+    //         gpScreen = new SplashScreen(gpDisplay);
+    //         break;
+    //     case MAIN_MENU:
+    //         gpScreen = new MainMenuScreen(gpDisplay);
+    //         break;
+    //     case BUTTONS:
+    //         gpScreen = new ButtonLayoutScreen(gpDisplay);
+    //         break;
+    //     case PIN_VIEWER:
+    //         gpScreen = new PinViewerScreen(gpDisplay);
+    //         break;
+    //     case DISPLAY_SAVER:
+    //         gpScreen = new DisplaySaverScreen(gpDisplay);
+    //         break;
+    //     case STATS:
+    //         gpScreen = new StatsScreen(gpDisplay);
+    //         break;
+    //     case SYSTEM_ERROR:
+    //         gpScreen = new SystemErrorScreen(gpDisplay, errorMessage);
+    //         break;
+    //     case RESTART:
+    //         gpScreen = new RestartScreen(gpDisplay, bootMode);
+    //         break;
+    //     case PS5_DEBUG:
+    //         gpScreen = new PS5DebugScreen(gpDisplay);
+    //         break;
+    //     default:
+    //         gpScreen = nullptr;
+    //         break;
+    // };
 
     if (gpScreen == nullptr )
         return false;

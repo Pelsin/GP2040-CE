@@ -189,6 +189,9 @@ src/drivers/ps3/PS3Driver.cpp
 src/drivers/ps4/PS4Auth.cpp
 src/drivers/ps4/PS4AuthUSBListener.cpp
 src/drivers/ps4/PS4Driver.cpp
+src/drivers/ps5/PS5Driver.cpp
+src/drivers/ps5/PS5Auth.cpp
+src/drivers/ps5/PS5AuthUSBListener.cpp
 src/drivers/psclassic/PSClassicDriver.cpp
 src/drivers/switch/SwitchDriver.cpp
 src/drivers/switchpro/SwitchProDriver.cpp
@@ -225,6 +228,7 @@ src/display/ui/screens/StatsScreen.cpp
 src/display/ui/screens/SplashScreen.cpp
 src/display/ui/screens/DisplaySaverScreen.cpp
 src/display/ui/screens/SystemErrorScreen.cpp
+src/display/ui/screens/PS5DebugScreen.cpp
 src/display/GPGFX.cpp
 src/display/GPGFX_UI.cpp
 src/drivermanager.cpp

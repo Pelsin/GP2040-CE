@@ -10,7 +10,8 @@ enum DisplayMode {
     STATS,
     MAIN_MENU,
     RESTART,
-    SYSTEM_ERROR
+    SYSTEM_ERROR,
+    PS5_DEBUG
 };
 
 #include "ui/screens/ButtonLayoutScreen.h"
@@ -18,6 +19,7 @@ enum DisplayMode {
 #include "ui/screens/DisplaySaverScreen.h"
 #include "ui/screens/MainMenuScreen.h"
 #include "ui/screens/PinViewerScreen.h"
+#include "ui/screens/PS5DebugScreen.h"
 #include "ui/screens/RestartScreen.h"
 #include "ui/screens/SplashScreen.h"
 #include "ui/screens/StatsScreen.h"

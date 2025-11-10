@@ -3,6 +3,8 @@
 #include "peripheralmanager.h"
 #include "eventmanager.h"
 
+#include "display/ui/screens/PS5DebugScreen.h"
+
 #include "pio_usb.h"
 #include "tusb.h"
 
@@ -32,6 +34,12 @@ void USBHostManager::shutdown() {
 }
 
 void USBHostManager::pushListener(USBListener * usbListener) { // If anything needs to update in the gpconfig driver
+    // Prevent duplicate listener registration
+    for (auto it = listeners.begin(); it != listeners.end(); ++it) {
+        if (*it == usbListener) {
+            return; // Already registered
+        }
+    }
     listeners.push_back(usbListener);
 }
 
@@ -60,6 +68,13 @@ void USBHostManager::hid_report_received_cb(uint8_t dev_addr, uint8_t instance, 
     if ( listeners.size() == 0 ) return;
     for( std::vector<USBListener*>::iterator it = listeners.begin(); it != listeners.end(); it++ ){
         (*it)->report_received(dev_addr, instance, report, len);
+    }
+}
+
+void USBHostManager::hid_report_sent_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len) {
+    if ( listeners.size() == 0 ) return;
+    for( std::vector<USBListener*>::iterator it = listeners.begin(); it != listeners.end(); it++ ){
+        (*it)->report_sent(dev_addr, instance, report, len);
     }
 }
 
@@ -147,6 +162,12 @@ void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t cons
     }
 }
 
+// Invoked when report is sent to device via interrupt endpoint
+void tuh_hid_report_sent_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len)
+{
+    USBHostManager::getInstance().hid_report_sent_cb(dev_addr, instance, report, len);
+}
+
 // On IN/OUT/FEATURE set report callback
 void tuh_hid_set_report_complete_cb(uint8_t dev_addr, uint8_t instance, uint8_t report_id, uint8_t report_type, uint16_t len) {
     if ( len != 0 )
@@ -156,8 +177,8 @@ void tuh_hid_set_report_complete_cb(uint8_t dev_addr, uint8_t instance, uint8_t 
 
 // GET REPORT FEATURE
 void tuh_hid_get_report_complete_cb(uint8_t dev_addr, uint8_t instance, uint8_t report_id, uint8_t report_type, uint16_t len) {
-    if ( len != 0 )
-        USBHostManager::getInstance().hid_get_report_complete_cb(dev_addr, instance, report_id, report_type, len);
+    // Always forward, even if len==0, to allow listeners to handle the response
+    USBHostManager::getInstance().hid_get_report_complete_cb(dev_addr, instance, report_id, report_type, len);
 }
 
 // USB Host: X-Input
