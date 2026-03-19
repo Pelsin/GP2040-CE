@@ -100,6 +100,7 @@ export default {
 		'layout-mode-label': 'Layout mode',
 		'layout-mode-description':
 			'Layout mode allows for manual configuration of LED positions and GPIO pins.',
+		'tail-length-label': 'Tail Length (0-100% of total light count)',
 	},
 	animations: {
 		NONPRESSED_EFFECT_STATIC_COLOR: 'Static Color',
@@ -119,6 +120,8 @@ export default {
 		NONPRESSED_EFFECT_RAIN_LOW: 'Rain Low',
 		NONPRESSED_EFFECT_RAIN_MEDIUM: 'Rain Medium',
 		NONPRESSED_EFFECT_RAIN_HIGH: 'Rain High',
+		NONPRESSED_EFFECT_COMET: 'Comet',
+		NONPRESSED_EFFECT_COMET_BOUNCE: 'Comet Bounce',
 
 		PRESSED_EFFECT_STATIC_COLOR: 'Static Color',
 		PRESSED_EFFECT_RANDOM: 'Random',

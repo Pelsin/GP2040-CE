@@ -41,6 +41,11 @@ import {
 	ANIMATION_NON_PRESSED_EFFECTS,
 	ANIMATION_PRESSED_EFFECTS,
 } from '../../Data/Animations';
+
+const TAIL_LENGTH_EFFECTS: number[] = [
+	ANIMATION_NON_PRESSED_EFFECTS.NONPRESSED_EFFECT_COMET,
+	ANIMATION_NON_PRESSED_EFFECTS.NONPRESSED_EFFECT_COMET_BOUNCE,
+];
 import boards from '../../Data/Boards.json';
 import { LED_FORMATS } from '../../Data/Leds';
 
@@ -117,6 +122,11 @@ const schema = yup.object({
 				pressedStaticColors: yup.array().of(yup.number()),
 				bNonPressedSpecialColorIsRainbow: yup.number().required(),
 				bPressedSpecialColorIsRainbow: yup.number().required(),
+				tailLength: yup
+					.number()
+					.min(0, 'Tail length must be at least 0')
+					.max(100, 'Tail length cannot be more than 100')
+					.required('Tail length is required'),
 			}),
 		),
 	}),
@@ -191,6 +201,7 @@ const emptyAnimationProfile = {
 	pressedSpecialColor: 0,
 	bNonPressedSpecialColorIsRainbow: 0,
 	bPressedSpecialColorIsRainbow: 0,
+	tailLength: 50,
 	notPressedStaticColors: Array.from({ length: GPIO_PIN_LENGTH }, () => 0),
 	pressedStaticColors: Array.from({ length: GPIO_PIN_LENGTH }, () => 1),
 };
@@ -856,6 +867,26 @@ export default function LedConfigPage() {
 														/>
 													)}
 												</Row>
+												{(TAIL_LENGTH_EFFECTS.includes(
+													Number(profile.baseNonPressedEffect),
+												) ||
+													TAIL_LENGTH_EFFECTS.includes(
+														Number(profile.baseCaseEffect),
+													)) && (
+													<Row>
+														<div className="form-control-sm col-sm-4 mb-3">
+															<Form.Label>{`${t('LedConfigPage:theme.tail-length-label')}: ${profile.tailLength}%`}</Form.Label>
+															<Form.Range
+																name={`AnimationOptions.profiles.${profileIndex}.tailLength`}
+																min={0}
+																max={100}
+																step={1}
+																defaultValue={profile.tailLength}
+																onChange={handleChange}
+															/>
+														</div>
+													</Row>
+												)}
 												<hr />
 
 												<Row>

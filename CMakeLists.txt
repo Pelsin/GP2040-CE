@@ -299,6 +299,7 @@ src/animationstation/animationstation.cpp
 src/animationstation/specialmovesystem.cpp
 src/animationstation/effects/burstcolor.cpp
 src/animationstation/effects/chase.cpp
+src/animationstation/effects/comet.cpp
 src/animationstation/effects/idletimeout.cpp
 src/animationstation/effects/jigglestaticcolor.cpp
 src/animationstation/effects/jiggletwostaticcolor.cpp

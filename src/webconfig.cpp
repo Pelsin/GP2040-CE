@@ -259,7 +259,7 @@ int set_file_data(fs_file* file, const DataAndStatusCode& dataAndStatusCode)
     returnData->append(std::to_string(dataAndStatusCode.data.length()));
     returnData->append("\r\n\r\n");
     returnData->append(dataAndStatusCode.data);
-    
+
     file->data = returnData->c_str();
     file->len = returnData->size();
     file->index = 0;//file->len;
@@ -1207,6 +1207,7 @@ void helperGetProfileFromJsonObject(AnimationProfile* Profile, JsonObject* JsonD
 
     Profile->bNonPressedSpecialColorIsRainbow = (*JsonData)["bNonPressedSpecialColorIsRainbow"].as<bool>();
     Profile->bPressedSpecialColorIsRainbow = (*JsonData)["bPressedSpecialColorIsRainbow"].as<bool>();
+    Profile->tailLength = (*JsonData)["tailLength"].as<int32_t>();
 
     JsonArray notPressedStaticColorsList = (*JsonData)["notPressedStaticColors"];
     Profile->notPressedStaticColors_count = 0;
@@ -1372,6 +1373,7 @@ std::string getAnimationProtoOptions()
 
         profile["bNonPressedSpecialColorIsRainbow"] = options.profiles[profilesIndex].bNonPressedSpecialColorIsRainbow ? 1 : 0;
         profile["bPressedSpecialColorIsRainbow"] = options.profiles[profilesIndex].bPressedSpecialColorIsRainbow ? 1 : 0;
+        profile["tailLength"] = options.profiles[profilesIndex].tailLength;
 
         JsonArray notPressedStaticColorsList = profile.createNestedArray("notPressedStaticColors");
         for (int notPressedStaticColorsIndex = 0; notPressedStaticColorsIndex < options.profiles[profilesIndex].notPressedStaticColors_count; ++notPressedStaticColorsIndex)
@@ -2876,11 +2878,11 @@ std:: string getJoystickCenter() {
     const size_t capacity = JSON_OBJECT_SIZE(10);
     DynamicJsonDocument doc(capacity);
     const AnalogOptions& analogOptions = Storage::getInstance().getAddonOptions().analogOptions;
-    
+
     uint16_t x = 0, y = 0;
     bool success = true;
     std::string error_msg = "";
-    
+
     // Check if analog input is enabled
     if (!analogOptions.enabled) {
         success = false;
@@ -2888,11 +2890,11 @@ std:: string getJoystickCenter() {
     } else {
         // Initialize ADC if not already initialized
         adc_init();
-        
+
         // Check if specific stick is requested via query parameter
         // For now, we'll read both sticks and return the appropriate one
         // In a more sophisticated implementation, we could parse query parameters
-        
+
         // Read first stick X/Y
         if (isValidPin(analogOptions.analogAdc1PinX)) {
             adc_gpio_init(analogOptions.analogAdc1PinX);
@@ -2905,7 +2907,7 @@ std:: string getJoystickCenter() {
             y = adc_read();
         }
     }
-    
+
     JsonObject o = doc.to<JsonObject>();
     o["success"] = success;
     if (!success) {
@@ -2922,11 +2924,11 @@ std:: string getJoystickCenter2() {
     const size_t capacity = JSON_OBJECT_SIZE(10);
     DynamicJsonDocument doc(capacity);
     const AnalogOptions& analogOptions = Storage::getInstance().getAddonOptions().analogOptions;
-    
+
     uint16_t x = 0, y = 0;
     bool success = true;
     std::string error_msg = "";
-    
+
     // Check if analog input is enabled
     if (!analogOptions.enabled) {
         success = false;
@@ -2934,7 +2936,7 @@ std:: string getJoystickCenter2() {
     } else {
         // Initialize ADC if not already initialized
         adc_init();
-        
+
         // Read second stick X/Y
         if (isValidPin(analogOptions.analogAdc2PinX)) {
             adc_gpio_init(analogOptions.analogAdc2PinX);
@@ -2947,7 +2949,7 @@ std:: string getJoystickCenter2() {
             y = adc_read();
         }
     }
-    
+
     JsonObject o = doc.to<JsonObject>();
     o["success"] = success;
     if (!success) {

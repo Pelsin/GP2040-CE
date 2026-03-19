@@ -517,6 +517,8 @@ enum AnimationNonPressedEffects
   EFFECT_RAIN_LOW = 14;
   EFFECT_RAIN_MEDIUM = 15;
   EFFECT_RAIN_HIGH = 16;
+  EFFECT_COMET = 17;
+  EFFECT_COMET_BOUNCE = 18;
 }
 
 /* This has to be kept in sync with AnimationPressedEffects in AnimationStation.hpp */

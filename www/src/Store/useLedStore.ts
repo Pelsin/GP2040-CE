@@ -25,6 +25,7 @@ export type AnimationProfile = {
 	pressedStaticColors: number[];
 	bNonPressedSpecialColorIsRainbow: 0 | 1;
 	bPressedSpecialColorIsRainbow: 0 | 1;
+	tailLength: number;
 };
 
 export type Light = {

@@ -454,7 +454,9 @@ export enum AnimationNonPressedEffects {
     EFFECT_JIGGLETWOSTATICS = 13,
     EFFECT_RAIN_LOW = 14,
     EFFECT_RAIN_MEDIUM = 15,
-    EFFECT_RAIN_HIGH = 16
+    EFFECT_RAIN_HIGH = 16,
+    EFFECT_COMET = 17,
+    EFFECT_COMET_BOUNCE = 18
 }
 
 export enum AnimationPressedEffects {

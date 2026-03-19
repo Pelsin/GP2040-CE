@@ -6,6 +6,7 @@
  */
 
 #include "effects/chase.h"
+#include "effects/comet.h"
 #include "effects/rain.h"
 #include "effects/rainbow.h"
 #include "effects/staticcolor.h"
@@ -302,7 +303,7 @@ void AnimationStation::UpdateTimeout()
           delete this->baseAnimation;
         if(this->caseAnimation != nullptr)
           delete this->caseAnimation;
-        
+
         this->caseAnimation = nullptr;
         this->baseAnimation = new IdleTimeout(RGBLights, EButtonCaseEffectType::BUTTONCASELIGHTTYPE_BUTTON_AND_CASE);
       }
@@ -411,6 +412,12 @@ Animation* AnimationStation::GetNonPressedEffectForEffectType(AnimationNonPresse
     break;
   case AnimationNonPressedEffects::AnimationNonPressedEffects_EFFECT_CHASE_RANDOM:
     newEffect = new Chase(RGBLights, InButtonCaseEffectType, ChaseTypes::CHASETYPES_RANDOM);
+    break;
+  case AnimationNonPressedEffects::AnimationNonPressedEffects_EFFECT_COMET:
+    newEffect = new Comet(RGBLights, InButtonCaseEffectType, false);
+    break;
+  case AnimationNonPressedEffects::AnimationNonPressedEffects_EFFECT_COMET_BOUNCE:
+    newEffect = new Comet(RGBLights, InButtonCaseEffectType, true);
     break;
 
   case AnimationNonPressedEffects::AnimationNonPressedEffects_EFFECT_STATIC_COLOR:
@@ -617,7 +624,7 @@ void AnimationStation::DecompressProfile(int ProfileIndex, const AnimationProfil
 				options.profiles[ProfileIndex].nonButtonStaticColors[nonButtonIndex + 3] = 0;
       }
 		}
-    
+
     options.profiles[ProfileIndex].buttonPressHoldTimeInMs = ProfileToDecompress->buttonPressHoldTimeInMs;
 		options.profiles[ProfileIndex].buttonPressFadeOutTimeInMs = ProfileToDecompress->buttonPressFadeOutTimeInMs;
 		options.profiles[ProfileIndex].nonPressedSpecialColor = ProfileToDecompress->nonPressedSpecialColor;
@@ -626,6 +633,7 @@ void AnimationStation::DecompressProfile(int ProfileIndex, const AnimationProfil
 		options.profiles[ProfileIndex].bPressedSpecialColorIsRainbow = ProfileToDecompress->bPressedSpecialColorIsRainbow;
 		options.profiles[ProfileIndex].bUseCaseLightsInSpecialMoves = ProfileToDecompress->bUseCaseLightsInSpecialMoves;
 		options.profiles[ProfileIndex].bUseCaseLightsInPressedAnimations = ProfileToDecompress->bUseCaseLightsInPressedAnimations;
+		options.profiles[ProfileIndex].tailLength = ProfileToDecompress->tailLength;
 }
 
 void AnimationStation::DecompressSettings()

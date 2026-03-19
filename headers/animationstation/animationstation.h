@@ -58,6 +58,8 @@ struct __attribute__ ((__packed__)) AnimationProfile_Unpacked
 
     bool bUseCaseLightsInSpecialMoves;
     bool bUseCaseLightsInPressedAnimations;
+
+    int16_t tailLength;
 };
 
 struct __attribute__ ((__packed__)) AnimationOptions_Unpacked
@@ -106,14 +108,14 @@ public:
   static void DecompressProfile(int ProfileIndex, const AnimationProfile* ProfileToDecompress);
   void DecompressSettings();
   void CheckForOptionsUpdate();
- 
+
   //special move anim
   void SetSpecialMoveAnimation(SpecialMoveEffects AnimationToPlay, uint32_t OptionalParams);
 
   //Testing/webconfig
   static void SetTestMode(AnimationStationTestMode TestType, const AnimationProfile* TestProfile);
   static void SetTestPinState(int PinOrNonButtonIndex, bool IsNonButtonLight);
-  
+
   SpecialMoveSystem specialMoveSystem;
 
   //Running non-pressed animation
@@ -140,7 +142,7 @@ public:
 
   static std::string printfs[4];
 
-  static uint8_t brightnessSteps; 
+  static uint8_t brightnessSteps;
 
   //Testing/webconfig
   static AnimationStationTestMode TestMode;

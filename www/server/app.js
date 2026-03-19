@@ -366,6 +366,7 @@ app.get('/api/getAnimationProtoOptions', (req, res) => {
 					pressedSpecialColor: 0,
 					bNonPressedSpecialColorIsRainbow: 0,
 					bPressedSpecialColorIsRainbow: 0,
+					tailLength: 50,
 					nonButtonStaticColors: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 					notPressedStaticColors: [
 						2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -398,6 +399,7 @@ app.get('/api/getAnimationProtoOptions', (req, res) => {
 						2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 						2, 2, 2, 2, 2, 2, 2, 2, 2,
 					],
+					tailLength: 50,
 				},
 			],
 		},
