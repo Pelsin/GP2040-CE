@@ -9,12 +9,11 @@
 //       SHOULD ONLY CONSIST OF PREPROCESSOR DIRECTIVES
 // -----------------------------------------------------
 
-
-#ifndef _BOARDS_SGF_DEVICES_H
-#define _BOARDS_SGF_DEVICES_H
+#ifndef _BOARDS_DMG2040LITE_H
+#define _BOARDS_DMG2040LITE_H
 
 // For board detection
-#define SGF_DEVICES
+#define DMG2040LITE
 
 //For crappy crystal
 #ifndef PICO_XOSC_STARTUP_DELAY_MULTIPLIER
@@ -32,7 +31,7 @@
 #define PICO_DEFAULT_UART_RX_PIN 1
 #endif
 
-// no onboard LED
+// // no onboard LED
 
 // no PICO_DEFAULT_WS2812_PIN
 
