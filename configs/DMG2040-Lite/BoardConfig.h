@@ -55,4 +55,18 @@
 #define KEY_BUTTON_A2   HID_KEY_F2            // A2     | ~      | Capture | ~        | 14     | ~      |
 #define KEY_BUTTON_FN   -1                    // Hotkey Function                                        |
 
+#define DEFAULT_BOARD_LAYOUT_A {\
+    {GP_ELEMENT_PIN_BUTTON, {35, 25, 6, 6, 1, 1, 27, GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {23, 35, 6, 6, 1, 1, 5, GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {35, 45, 6, 6, 1, 1, 3, GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {47, 35, 6, 6, 1, 1, 4, GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {58, 50, 4, 4, 1, 1, 14, GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {72, 50, 4, 4, 1, 1, 21, GP_SHAPE_ELLIPSE}},\
+}
+
+#define DEFAULT_BOARD_LAYOUT_B {\
+    {GP_ELEMENT_PIN_BUTTON, {92, 40, 6, 6, 1, 1, 6, GP_SHAPE_ELLIPSE}},\
+    {GP_ELEMENT_PIN_BUTTON, {105, 31, 6, 6, 1, 1, 7, GP_SHAPE_ELLIPSE}},\
+}
+
 #endif
