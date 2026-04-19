@@ -17,6 +17,7 @@
 #include "addons/focus_mode.h"
 #include "addons/dualdirectional.h"
 #include "addons/tilt.h"
+#include "addons/airbar_host.h"
 #include "addons/keyboard_host.h"
 #include "addons/i2canalog1219.h"
 #include "addons/reverse.h"
@@ -104,6 +105,7 @@ void GP2040::setup() {
 	adc_init();
 
 	// Setup Add-ons
+	addons.LoadUSBAddon(new AirBarHostAddon());
 	addons.LoadUSBAddon(new KeyboardHostAddon());
 	addons.LoadUSBAddon(new GamepadUSBHostAddon());
 	addons.LoadAddon(new AnalogInput());
