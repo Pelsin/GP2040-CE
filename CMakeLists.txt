@@ -276,6 +276,7 @@ src/addons/dualdirectional.cpp
 src/addons/keyboard_host.cpp
 src/addons/keyboard_host_listener.cpp
 src/addons/i2canalog1219.cpp
+src/addons/mpu6050.cpp
 src/addons/i2c_gpio_pcf8575.cpp
 src/addons/display.cpp
 src/addons/neopicoleds.cpp
@@ -321,6 +322,7 @@ FlashPROM
 ADS1219
 ADS1256
 NeoPico
+MPU6050
 OneBitDisplay
 ArduinoJson
 rndis
@@ -343,6 +345,7 @@ headers/events
 headers/interfaces
 headers/interfaces/i2c
 headers/interfaces/i2c/ads1219
+headers/interfaces/i2c/mpu6050
 headers/interfaces/i2c/pcf8575
 headers/interfaces/i2c/ssd1306
 headers/interfaces/i2c/wiiextension

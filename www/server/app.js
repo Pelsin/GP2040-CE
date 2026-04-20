@@ -578,6 +578,9 @@ app.get('/api/getAddonsOptions', (req, res) => {
 		tg16PadDataPin3: -1,
 		TG16padAddonEnabled: 1,
 		HETriggerEnabled: 1,
+		MPU6050InputEnabled: 0,
+		mpu6050AccelEnabled: 1,
+		mpu6050GyroEnabled: 0,
 		usedPins: Object.values(picoController),
 	});
 });

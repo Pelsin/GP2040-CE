@@ -1889,6 +1889,11 @@ std::string setAddonOptions()
     docToValue(heTriggerOptions.emaSmoothing, doc, "heTriggerSmoothing");
     docToValue(heTriggerOptions.smoothingFactor, doc, "heTriggerSmoothingFactor");
 
+    MPU6050Options& mpu6050Options = Storage::getInstance().getAddonOptions().mpu6050Options;
+    docToValue(mpu6050Options.enabled, doc, "MPU6050InputEnabled");
+    docToValue(mpu6050Options.accelEnabled, doc, "mpu6050AccelEnabled");
+    docToValue(mpu6050Options.gyroEnabled, doc, "mpu6050GyroEnabled");
+
     EventManager::getInstance().triggerEvent(new GPStorageSaveEvent(true));
 
     return serialize_json(doc);
@@ -2346,6 +2351,11 @@ std::string getAddonOptions()
     writeDoc(doc, "muxADCPin3", cleanPin(heTriggerOptions.muxADCPin3));
     writeDoc(doc, "heTriggerSmoothing", heTriggerOptions.emaSmoothing);
     writeDoc(doc, "heTriggerSmoothingFactor", heTriggerOptions.smoothingFactor);
+
+    const MPU6050Options& mpu6050Options = Storage::getInstance().getAddonOptions().mpu6050Options;
+    writeDoc(doc, "MPU6050InputEnabled", mpu6050Options.enabled);
+    writeDoc(doc, "mpu6050AccelEnabled", mpu6050Options.accelEnabled);
+    writeDoc(doc, "mpu6050GyroEnabled", mpu6050Options.gyroEnabled);
 
     return serialize_json(doc);
 }

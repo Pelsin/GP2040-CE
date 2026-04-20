@@ -217,4 +217,9 @@ export default {
 	'tg16-extension-data-pin2-label': 'Data GPIO Pin 2 (D_SELECT)',
 	'tg16-extension-data-pin3-label': 'Data GPIO Pin 3 (L_RUN)',
 	'tg16-extension-desc-header': 'PC Engine/TurboGrafx-16 Extension Mapping',
+	'mpu6050-header-text': 'MPU6050 IMU Configuration',
+	'mpu6050-peripheral-info': 'The SDA and SCL pins and Speed are configured in',
+	'mpu6050-peripheral-link': 'Peripheral Mapping',
+	'mpu6050-accel-enabled-label': 'Enable Accelerometer',
+	'mpu6050-gyro-enabled-label': 'Enable Gyroscope',
 };

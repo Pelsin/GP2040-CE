@@ -131,8 +131,8 @@ struct GamepadAuxSensors
     GamepadAux3DRelativeSensor mouse;
 
     GamepadAux3DSensor touchpad[GAMEPAD_AUX_MAX_TOUCHPADS];
-    GamepadAux3DSensor gyroscope;
-    GamepadAux3DSensor accelerometer;
+    GamepadAux3DRelativeSensor gyroscope;
+    GamepadAux3DRelativeSensor accelerometer;
     GamepadAux3DSensor magnetometer;
     GamepadAux4DSensor timeOfFlight;
 
@@ -151,7 +151,7 @@ struct GamepadAuxHaptics
 struct GamepadAuxState
 {
     GamepadAuxPlayerID playerID;
-    
+
     GamepadAuxColor primaryColor;
     GamepadAuxColor secondaryColor;
 

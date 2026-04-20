@@ -61,6 +61,10 @@ import HETrigger, {
 	HETriggerScheme,
 	HETriggerState,
 } from '../Addons/HETrigger';
+import MPU6050, {
+	mpu6050Scheme,
+	mpu6050State,
+} from '../Addons/MPU6050';
 
 export type AddonPropTypes = {
 	values: typeof DEFAULT_VALUES;
@@ -91,6 +95,7 @@ const schema = yup.object().shape({
 	...reactiveLEDScheme,
 	...gamepadUSBHostScheme,
 	...HETriggerScheme,
+	...mpu6050Scheme,
 });
 
 export const DEFAULT_VALUES = {
@@ -116,6 +121,7 @@ export const DEFAULT_VALUES = {
 	...reactiveLEDState,
 	...gamepadUSBHostState,
 	...HETriggerState,
+	...mpu6050State,
 } as const;
 
 const ADDONS = [
@@ -141,6 +147,7 @@ const ADDONS = [
 	DRV8833Rumble,
 	ReactiveLED,
 	HETrigger,
+	MPU6050,
 ];
 
 const FormContext = ({ setStoredData }) => {

@@ -19,6 +19,7 @@
 #include "addons/tilt.h"
 #include "addons/keyboard_host.h"
 #include "addons/i2canalog1219.h"
+#include "addons/mpu6050input.h"
 #include "addons/reverse.h"
 #include "addons/turbo.h"
 #include "addons/slider_socd.h"
@@ -112,6 +113,7 @@ void GP2040::setup() {
 	addons.LoadAddon(new DualDirectionalInput());
 	addons.LoadAddon(new FocusModeAddon());
 	addons.LoadAddon(new I2CAnalog1219Input());
+	addons.LoadAddon(new MPU6050Input());
 	addons.LoadAddon(new SPIAnalog1256Input());
 	addons.LoadAddon(new WiiExtensionInput());
 	addons.LoadAddon(new SNESpadInput());
@@ -321,11 +323,11 @@ void GP2040::run() {
 		// Pre-Process add-ons for MPGS
 		addons.PreprocessAddons();
 
-		
+
 
 		gamepad->process(); // process through MPGS
 
-		
+
 
 		// (Post) Process for add-ons
 		addons.ProcessAddons();
@@ -443,7 +445,7 @@ GP2040::BootAction GP2040::getBootAction() {
                                     return BootAction::SET_INPUT_MODE_PS4;
                                 case INPUT_MODE_PS5:
                                     return BootAction::SET_INPUT_MODE_PS5;
-                                case INPUT_MODE_P5GENERAL: 
+                                case INPUT_MODE_P5GENERAL:
                                     return BootAction::SET_INPUT_MODE_P5GENERAL;
                                 case INPUT_MODE_NEOGEO:
                                     return BootAction::SET_INPUT_MODE_NEOGEO;

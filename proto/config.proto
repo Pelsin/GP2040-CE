@@ -269,7 +269,7 @@ message DisplayOptions
     optional uint32 inputHistoryLength = 28;
     optional uint32 inputHistoryCol = 29;
     optional uint32 inputHistoryRow = 30;
-    
+
     optional uint32 contrast = 31;
 }
 
@@ -873,7 +873,7 @@ message HETriggerInfo
     optional int32 polarity = 5 [deprecated = true];
     optional int32 release = 6;
     optional int32 noise = 7;
-    optional bool rapidTrigger = 8; 
+    optional bool rapidTrigger = 8;
     optional bool is_polarized = 9;
 }
 
@@ -892,6 +892,13 @@ message HETriggerOptions
     repeated HETriggerInfo triggers = 11 [(nanopb).max_count = 32];
     optional bool emaSmoothing = 12;
     optional int32 smoothingFactor = 13;
+}
+
+message MPU6050Options
+{
+    optional bool enabled = 1;
+    optional bool accelEnabled = 2; // populate auxState.sensors.accelerometer
+    optional bool gyroEnabled = 3;  // populate auxState.sensors.gyroscope
 }
 
 message AddonOptions
@@ -926,6 +933,7 @@ message AddonOptions
     optional GamepadUSBHostOptions gamepadUSBHostOptions = 28;
     optional TG16Options tg16Options = 29;
     optional HETriggerOptions heTriggerOptions = 30;
+    optional MPU6050Options mpu6050Options = 31;
 }
 
 message MigrationHistory
