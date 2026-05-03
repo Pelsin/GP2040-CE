@@ -2438,6 +2438,18 @@ std::string getFirmwareVersion()
     return serialize_json(doc);
 }
 
+std::string getFlashStats()
+{
+    const size_t capacity = JSON_OBJECT_SIZE(10);
+    DynamicJsonDocument doc(capacity);
+    writeDoc(doc, "setHasFlagsUs", (uint32_t)flashStats.setHasFlagsUs);
+    writeDoc(doc, "encodeUs", (uint32_t)flashStats.encodeUs);
+    writeDoc(doc, "crcUs", (uint32_t)flashStats.crcUs);
+    writeDoc(doc, "commitUs", (uint32_t)flashStats.commitUs);
+    writeDoc(doc, "writeCount", flashStats.writeCount);
+    return serialize_json(doc);
+}
+
 std::string getMemoryReport()
 {
     const size_t capacity = JSON_OBJECT_SIZE(10);
@@ -2719,6 +2731,7 @@ static const std::pair<const char*, HandlerFuncPtr> handlerFuncs[] =
     { "/api/getSplashImage", getSplashImage },
     { "/api/getFirmwareVersion", getFirmwareVersion },
     { "/api/getMemoryReport", getMemoryReport },
+    { "/api/getFlashStats", getFlashStats },
     { "/api/getHeldPins", getHeldPins },
     { "/api/abortGetHeldPins", abortGetHeldPins },
     { "/api/getUsedPins", getUsedPins },

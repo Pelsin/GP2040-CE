@@ -1,5 +1,10 @@
 #include "config_utils.h"
 
+#include <hardware/timer.h>
+#include "FlashPROM.h"
+
+FlashStats flashStats = {};
+
 #include "config.pb.h"
 #include "enums.pb.h"
 #include "pb_encode.h"
@@ -2037,19 +2042,28 @@ bool ConfigUtils::save(Config& config)
     // Set all has_XXX flags to true, we want to save all fields.
     // If we didn't do this we would have to remember to set the has_XXX flag manually whenever we change a field from
     // its default value.
+    uint64_t t0 = time_us_64();
     setHasFlags(Config_fields, &config);
+    uint64_t t1 = time_us_64();
+    flashStats.setHasFlagsUs = t1 - t0;
 
     // Encode the data directly into the cache of FlashPROM
     pb_ostream_t outputStream = pb_ostream_from_buffer(EEPROM.writeCache, EEPROM_SIZE_BYTES - sizeof(ConfigFooter));
+    uint64_t t2 = time_us_64();
     if (!pb_encode(&outputStream, Config_fields, &config))
     {
         return false;
     }
+    uint64_t t3 = time_us_64();
+    flashStats.encodeUs = t3 - t2;
 
     // Create the new footer
     ConfigFooter newFooter;
     newFooter.dataSize = outputStream.bytes_written;
+    uint64_t t4 = time_us_64();
     newFooter.dataCrc = CRC32::calculate(EEPROM.writeCache, newFooter.dataSize);
+    uint64_t t5 = time_us_64();
+    flashStats.crcUs = t5 - t4;
     newFooter.magic = FOOTER_MAGIC;
 
     // The data has changed when the footer content has changed. Only then do we acutally need to save.
@@ -2068,7 +2082,11 @@ bool ConfigUtils::save(Config& config)
     memmove(EEPROM.writeCache + EEPROM_SIZE_BYTES - sizeof(ConfigFooter) - newFooter.dataSize, EEPROM.writeCache, newFooter.dataSize);
     memset(EEPROM.writeCache, 0, EEPROM_SIZE_BYTES - sizeof(ConfigFooter) - newFooter.dataSize);
 
+    uint64_t t6 = time_us_64();
     EEPROM.commit();
+    uint64_t t7 = time_us_64();
+    flashStats.commitUs = t7 - t6;
+    flashStats.writeCount++;
 
     return true;
 }
