@@ -12,6 +12,7 @@ export default {
 	'select-pin-1': '핀 1 선택',
 	'select-pin-2': '핀 2 선택',
 	'select-pin-3': '핀 3 선택',
+	'separate-select-pins-label': '개별 선택 핀 활성화',
 	'adc-pin-0': 'ADC 핀 0',
 	'adc-pin-1': 'ADC 핀 1',
 	'adc-pin-2': 'ADC 핀 2',
@@ -44,7 +45,6 @@ export default {
 	'calibration-header-text': '홀 이펙트 보정',
 	'calibration-idle-text': '유휴 전압 값:',
 	'calibration-pressed-text': '눌림 전압 값:',
-	'calibration-trigger-text': '트리거 전압',
 	'calibration-flip-polarity': '극성 반전',
 	'calibration-back-button': '이전',
 	'calibration-first-step':

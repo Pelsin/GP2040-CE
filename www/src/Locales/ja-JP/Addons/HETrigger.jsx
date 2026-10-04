@@ -12,6 +12,7 @@ export default {
 	'select-pin-1': 'セレクト端子 1',
 	'select-pin-2': 'セレクト端子 2',
 	'select-pin-3': 'セレクト端子 3',
+	'separate-select-pins-label': '個別のセレクト端子を有効化',
 	'adc-pin-0': 'ADC端子 0',
 	'adc-pin-1': 'ADC端子 1',
 	'adc-pin-2': 'ADC端子 2',
@@ -44,7 +45,6 @@ export default {
 	'calibration-header-text': 'ホールセンサ調整',
 	'calibration-idle-text': '未押下電圧値:',
 	'calibration-pressed-text': '最大押下電圧値:',
-	'calibration-trigger-text': '押下判定電圧値',
 	'calibration-flip-polarity': '極性反転',
 	'calibration-back-button': '戻る',
 	'calibration-first-step':
